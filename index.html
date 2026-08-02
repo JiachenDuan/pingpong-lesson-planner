@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ping Pong Lessons</title>
-    <link rel="stylesheet" href="./styles.css?v=20260802-calendar-overview" />
+    <link rel="stylesheet" href="./styles.css?v=20260802-day-modal" />
   </head>
   <body>
     <div class="app-shell">
@@ -136,6 +136,19 @@
       </main>
     </div>
 
-    <script src="./app.js?v=20260802-calendar-overview"></script>
+    <div id="dayModal" class="modal-backdrop is-hidden" role="dialog" aria-modal="true" aria-labelledby="dayModalTitle">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <h2 id="dayModalTitle">课程详情</h2>
+            <p id="dayModalSummary" class="muted"></p>
+          </div>
+          <button class="icon-button" id="closeDayModalBtn" title="关闭" aria-label="关闭">×</button>
+        </div>
+        <div id="dayModalLessons" class="modal-lessons"></div>
+      </div>
+    </div>
+
+    <script src="./app.js?v=20260802-day-modal"></script>
   </body>
 </html>

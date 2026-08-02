@@ -361,12 +361,17 @@ input[type="color"] {
 }
 
 .calendar-day {
+  display: block;
   min-height: 120px;
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fbfcfb;
+  color: inherit;
+  cursor: pointer;
   padding: 10px;
+  text-align: left;
+  width: 100%;
 }
 
 .calendar-day-empty {
@@ -409,9 +414,8 @@ input[type="color"] {
 
 .calendar-lesson {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 22px;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: 4px;
   border-radius: 7px;
   background: #edf4f1;
   color: var(--green);
@@ -425,18 +429,6 @@ input[type="color"] {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.calendar-delete {
-  width: 22px;
-  height: 22px;
-  border: 1px solid #ecd3d3;
-  border-radius: 6px;
-  background: #fff7f7;
-  color: var(--red);
-  font-weight: 900;
-  line-height: 1;
-  padding: 0;
 }
 
 @media (max-width: 920px) {
@@ -551,15 +543,109 @@ input[type="color"] {
   }
 
   .calendar-lesson {
-    grid-template-columns: minmax(0, 1fr) 16px;
     padding: 4px;
     font-size: 0.65rem;
   }
+}
 
-  .calendar-delete {
-    width: 16px;
-    height: 16px;
-    border-radius: 5px;
-    font-size: 0.65rem;
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgba(16, 32, 39, 0.38);
+  padding: 18px;
+}
+
+.modal-card {
+  width: min(560px, 100%);
+  max-height: min(82vh, 760px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 24px 70px rgba(16, 32, 39, 0.22);
+  padding: 18px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.modal-lessons {
+  display: grid;
+  gap: 10px;
+}
+
+.modal-lesson {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfb;
+  padding: 12px;
+}
+
+.modal-lesson strong,
+.modal-lesson span,
+.modal-lesson p {
+  display: block;
+}
+
+.modal-lesson span,
+.modal-lesson p,
+.modal-empty {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.modal-lesson p {
+  margin: 4px 0 0;
+}
+
+.modal-lesson-actions,
+.modal-edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.danger-text {
+  color: var(--red);
+}
+
+.modal-edit-form {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfb;
+  padding: 12px;
+}
+
+.modal-empty {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 18px;
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  .modal-card {
+    padding: 14px;
+  }
+
+  .modal-header,
+  .modal-lesson,
+  .modal-lesson-actions,
+  .modal-edit-actions {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+    flex-direction: column;
   }
 }

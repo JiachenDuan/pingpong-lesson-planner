@@ -15,11 +15,14 @@ const seedState = {
 
 let state = loadState();
 let selectedMonth = new Date().toISOString().slice(0, 7);
+let selectedModalDate = "";
+let editingLessonId = "";
 
 const $ = (id) => document.getElementById(id);
 const money = (value) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value || 0);
 const monthTitle = (month) => new Date(`${month}-01T12:00:00`).toLocaleDateString("zh-CN", { year: "numeric", month: "long" });
 const shortDateLabel = (date) => new Date(`${date}T12:00:00`).toLocaleDateString("zh-CN", { month: "short", day: "numeric" });
+const fullDateLabel = (date) => new Date(`${date}T12:00:00`).toLocaleDateString("zh-CN", { month: "long", day: "numeric", weekday: "long" });
 
 function loadState() {
   try {
@@ -186,14 +189,13 @@ function renderCalendar() {
         return `
           <div class="calendar-lesson">
             <span>${escapeHtml(coach?.name || "已删除教练")} · ${lesson.minutes}m</span>
-            <button class="calendar-delete" data-delete-lesson="${lesson.id}" title="删除课程" aria-label="删除课程">×</button>
           </div>
         `;
       })
       .join("");
 
     cells.push(`
-      <div class="calendar-day ${date === today ? "is-today" : ""} ${dayLessons.length ? "has-lessons" : ""}">
+      <div class="calendar-day ${date === today ? "is-today" : ""} ${dayLessons.length ? "has-lessons" : ""}" data-open-date="${date}" role="button" tabindex="0">
         <div class="calendar-day-top">
           <span>${day}</span>
           ${daySpend ? `<strong>${money(daySpend)}</strong>` : ""}
@@ -204,6 +206,78 @@ function renderCalendar() {
   }
 
   $("calendarGrid").innerHTML = cells.join("");
+}
+
+function renderDayModal() {
+  if (!selectedModalDate) return;
+
+  const lessons = state.lessons
+    .filter((lesson) => lesson.date === selectedModalDate)
+    .sort((a, b) => a.coachId.localeCompare(b.coachId));
+  const totalMinutes = lessons.reduce((sum, lesson) => sum + Number(lesson.minutes), 0);
+  const totalSpend = lessons.reduce((sum, lesson) => sum + lessonCost(lesson), 0);
+
+  $("dayModalTitle").textContent = fullDateLabel(selectedModalDate);
+  $("dayModalSummary").textContent = `${lessons.length} 节课 · ${(totalMinutes / 60).toFixed(totalMinutes % 60 ? 1 : 0)}h · ${money(totalSpend)}`;
+  $("dayModalLessons").innerHTML = lessons.length
+    ? lessons.map((lesson) => (editingLessonId === lesson.id ? editLessonHtml(lesson) : lessonDetailHtml(lesson))).join("")
+    : '<div class="modal-empty">这天还没有课程。</div>';
+}
+
+function lessonDetailHtml(lesson) {
+  const coach = state.coaches.find((item) => item.id === lesson.coachId);
+  return `
+    <div class="modal-lesson">
+      <div>
+        <strong>${escapeHtml(coach?.name || "已删除教练")}</strong>
+        <span>${lesson.minutes} 分钟 · ${money(lessonCost(lesson))}</span>
+        ${lesson.note ? `<p>${escapeHtml(lesson.note)}</p>` : ""}
+      </div>
+      <div class="modal-lesson-actions">
+        <button class="secondary-button" data-edit-lesson="${lesson.id}" type="button">编辑</button>
+        <button class="secondary-button danger-text" data-modal-delete-lesson="${lesson.id}" type="button">删除</button>
+      </div>
+    </div>
+  `;
+}
+
+function editLessonHtml(lesson) {
+  const coachOptions = state.coaches
+    .map((coach) => `<option value="${coach.id}" ${coach.id === lesson.coachId ? "selected" : ""}>${escapeHtml(coach.name)}</option>`)
+    .join("");
+  return `
+    <form class="modal-edit-form" data-edit-form="${lesson.id}">
+      <label>
+        教练
+        <select name="coachId" required>${coachOptions}</select>
+      </label>
+      <label>
+        分钟
+        <input name="minutes" type="number" min="15" step="5" value="${lesson.minutes}" required />
+      </label>
+      <label>
+        备注
+        <input name="note" type="text" value="${escapeHtml(lesson.note || "")}" />
+      </label>
+      <div class="modal-edit-actions">
+        <button class="primary-button" type="submit">保存</button>
+        <button class="secondary-button" data-cancel-edit type="button">取消</button>
+      </div>
+    </form>
+  `;
+}
+
+function openDayModal(date) {
+  selectedModalDate = date;
+  editingLessonId = "";
+  renderDayModal();
+  $("dayModal").classList.remove("is-hidden");
+}
+
+function closeDayModal() {
+  selectedModalDate = "";
+  editingLessonId = "";
+  $("dayModal").classList.add("is-hidden");
 }
 
 function render() {
@@ -233,6 +307,7 @@ function deleteBy(type, id) {
   if (type === "lesson") state.lessons = state.lessons.filter((item) => item.id !== id);
   saveState();
   render();
+  renderDayModal();
 }
 
 function exportJson() {
@@ -288,6 +363,12 @@ function bindEvents() {
   });
   $("prevMonthBtn").addEventListener("click", () => shiftMonth(-1));
   $("nextMonthBtn").addEventListener("click", () => shiftMonth(1));
+  $("calendarGrid").addEventListener("keydown", (event) => {
+    const dayButton = event.target.closest("[data-open-date]");
+    if (!dayButton || !["Enter", " "].includes(event.key)) return;
+    event.preventDefault();
+    openDayModal(dayButton.dataset.openDate);
+  });
   $("lessonForm").addEventListener("submit", addLesson);
   $("lessonCoach").addEventListener("change", () => {
     const coach = state.coaches.find((item) => item.id === $("lessonCoach").value);
@@ -331,9 +412,42 @@ function bindEvents() {
     saveState();
     render();
   });
+  $("closeDayModalBtn").addEventListener("click", closeDayModal);
+  $("dayModal").addEventListener("click", (event) => {
+    if (event.target.id === "dayModal") closeDayModal();
+  });
+  $("dayModalLessons").addEventListener("submit", (event) => {
+    const form = event.target.closest("[data-edit-form]");
+    if (!form) return;
+    event.preventDefault();
+    const lesson = state.lessons.find((item) => item.id === form.dataset.editForm);
+    if (!lesson) return;
+    lesson.coachId = form.elements.coachId.value;
+    lesson.minutes = Number(form.elements.minutes.value);
+    lesson.note = form.elements.note.value.trim();
+    editingLessonId = "";
+    saveState();
+    render();
+    renderDayModal();
+  });
   document.body.addEventListener("click", (event) => {
-    const deleteButton = event.target.closest("[data-delete-lesson]");
-    if (deleteButton && confirm("确定删除这节课？")) deleteBy("lesson", deleteButton.dataset.deleteLesson);
+    const dayButton = event.target.closest("[data-open-date]");
+    if (dayButton) openDayModal(dayButton.dataset.openDate);
+
+    const editButton = event.target.closest("[data-edit-lesson]");
+    if (editButton) {
+      editingLessonId = editButton.dataset.editLesson;
+      renderDayModal();
+    }
+
+    const cancelEditButton = event.target.closest("[data-cancel-edit]");
+    if (cancelEditButton) {
+      editingLessonId = "";
+      renderDayModal();
+    }
+
+    const deleteButton = event.target.closest("[data-modal-delete-lesson]");
+    if (deleteButton && confirm("确定删除这节课？")) deleteBy("lesson", deleteButton.dataset.modalDeleteLesson);
   });
 }
 
