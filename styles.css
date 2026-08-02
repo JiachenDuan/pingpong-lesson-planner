@@ -519,23 +519,12 @@ input[type="color"] {
   }
 
   .month-control {
-    grid-template-columns: 40px 40px minmax(0, 1fr);
-    grid-template-areas:
-      "prev next ."
-      "picker picker picker";
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
     overflow: hidden;
   }
 
   .month-control input {
-    grid-area: picker;
-  }
-
-  #prevMonthBtn {
-    grid-area: prev;
-  }
-
-  #nextMonthBtn {
-    grid-area: next;
+    font-size: 0.95rem;
   }
 
   .calendar-totals {
