@@ -144,6 +144,10 @@ h2 {
   overflow: hidden;
 }
 
+.summary-grid-compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .metric {
   min-height: 92px;
   padding: 18px;
@@ -165,6 +169,10 @@ h2 {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
+  margin-bottom: 16px;
+}
+
+.record-section {
   margin-bottom: 16px;
 }
 
@@ -209,28 +217,15 @@ input[type="color"] {
   padding: 4px;
 }
 
-.lesson-form,
-.coach-form {
+.lesson-form {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 12px;
   align-items: end;
 }
 
 .lesson-form .span-2 {
-  grid-column: span 2;
-}
-
-.inline-form {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-}
-
-.budget-controls {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-column: auto;
 }
 
 .settlement-panel {
@@ -298,53 +293,18 @@ input[type="color"] {
   padding: 0 12px;
 }
 
-.list,
-.coach-list,
-.lesson-list,
-.plan-output {
+.lesson-list {
   display: grid;
   gap: 10px;
 }
 
-.list {
-  margin-top: 14px;
-}
-
-.coach-list {
-  margin-top: 16px;
-}
-
-.row,
-.lesson-row,
-.plan-card {
+.lesson-row {
   display: grid;
   gap: 8px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fbfcfb;
   padding: 12px;
-}
-
-.row {
-  grid-template-columns: 1fr auto;
-  align-items: center;
-}
-
-.coach-row {
-  display: grid;
-  grid-template-columns: 16px 1.2fr repeat(3, minmax(80px, 1fr)) auto;
-  gap: 10px;
-  align-items: center;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 12px;
-  background: #fbfcfb;
-}
-
-.swatch {
-  width: 16px;
-  height: 34px;
-  border-radius: 6px;
 }
 
 .lesson-row {
@@ -357,8 +317,7 @@ input[type="color"] {
   gap: 3px;
 }
 
-.lesson-main strong,
-.coach-row strong {
+.lesson-main strong {
   font-size: 0.98rem;
 }
 
@@ -404,23 +363,6 @@ input[type="color"] {
   font-weight: 900;
 }
 
-.plan-card {
-  margin-top: 12px;
-}
-
-.plan-card strong {
-  display: block;
-  margin-bottom: 4px;
-}
-
-.plan-line {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  border-top: 1px solid var(--line);
-  padding-top: 8px;
-}
-
 .empty-state {
   border: 1px dashed var(--line);
   border-radius: 8px;
@@ -443,22 +385,16 @@ input[type="color"] {
     grid-column: auto;
   }
 
-  .lesson-form,
-  .coach-form {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .lesson-form {
+    grid-template-columns: 1fr;
   }
 
   .settlement-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .lesson-row,
-  .coach-row {
+  .lesson-row {
     grid-template-columns: 1fr auto;
-  }
-
-  .swatch {
-    display: none;
   }
 }
 
@@ -521,13 +457,7 @@ input[type="color"] {
 
   .summary-grid,
   .lesson-form,
-  .coach-form,
-  .budget-controls,
   .settlement-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .inline-form {
     grid-template-columns: 1fr;
   }
 }

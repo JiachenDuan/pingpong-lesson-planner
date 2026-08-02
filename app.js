@@ -8,8 +8,6 @@ const seedState = {
   ],
   lessons: [],
   settings: {
-    monthlyBudget: 2000,
-    targetLessons: 8,
     lastSettlementDate: "",
     nextSettlementDate: endOfMonth(new Date().toISOString().slice(0, 7)),
   },
@@ -54,6 +52,11 @@ function migrateStarterData(saved) {
     changed = true;
     next.settings.nextSettlementDate = endOfMonth(new Date().toISOString().slice(0, 7));
   }
+  if ("monthlyBudget" in next.settings || "targetLessons" in next.settings) {
+    changed = true;
+    delete next.settings.monthlyBudget;
+    delete next.settings.targetLessons;
+  }
 
   next.children = next.children.map((child) => {
     if (child.name !== "孩子") return child;
@@ -81,11 +84,6 @@ function migrateStarterData(saved) {
     changed = true;
     next.coaches.push(...seedState.coaches);
   }
-  if ([800, 1000].includes(Number(next.settings?.monthlyBudget)) && Number(next.settings?.targetLessons) === 8) {
-    changed = true;
-    next.settings.monthlyBudget = 2000;
-  }
-
   return { state: next, changed };
 }
 
@@ -97,10 +95,6 @@ function lessonCost(lesson) {
   const coach = state.coaches.find((item) => item.id === lesson.coachId);
   if (!coach) return 0;
   return coach.rateMode === "session" ? Number(coach.rate) : (Number(coach.rate) * Number(lesson.minutes)) / 60;
-}
-
-function coachUnitCost(coach) {
-  return coach.rateMode === "session" ? Number(coach.rate) : (Number(coach.rate) * Number(coach.defaultMinutes)) / 60;
 }
 
 function monthLessons() {
@@ -143,13 +137,10 @@ function renderSummary() {
   const lessons = monthLessons();
   const totalMinutes = lessons.reduce((sum, lesson) => sum + Number(lesson.minutes), 0);
   const totalSpend = lessons.reduce((sum, lesson) => sum + lessonCost(lesson), 0);
-  const left = Number(state.settings.monthlyBudget) - totalSpend;
 
   $("monthLessonCount").textContent = lessons.length;
   $("monthHours").textContent = `${(totalMinutes / 60).toFixed(totalMinutes % 60 ? 1 : 0)}h`;
   $("monthSpend").textContent = money(totalSpend);
-  $("budgetLeft").textContent = money(left);
-  $("budgetLeft").className = left < 0 ? "over" : "under";
 }
 
 function renderSettlement() {
@@ -171,40 +162,6 @@ function renderSettlement() {
   $("settlementLessonCount").textContent = lessons.length;
   $("settlementHours").textContent = `${(totalMinutes / 60).toFixed(totalMinutes % 60 ? 1 : 0)}h`;
   $("settlementSpend").textContent = money(totalSpend);
-}
-
-function renderChildren() {
-  $("childrenList").innerHTML = state.children.length
-    ? state.children
-        .map(
-          (child) => `
-            <div class="row">
-              <strong>${escapeHtml(child.name)}</strong>
-              <button class="delete-button" data-delete-child="${child.id}" title="删除">×</button>
-            </div>
-          `,
-        )
-        .join("")
-    : emptyHtml();
-}
-
-function renderCoaches() {
-  $("coachesList").innerHTML = state.coaches.length
-    ? state.coaches
-        .map(
-          (coach) => `
-            <div class="coach-row">
-              <span class="swatch" style="background:${coach.color}"></span>
-              <strong>${escapeHtml(coach.name)}</strong>
-              <span>${money(coach.rate)} / ${coach.rateMode === "hour" ? "小时" : "节"}</span>
-              <span>${coach.defaultMinutes} 分钟</span>
-              <span class="money">${money(coachUnitCost(coach))} / 默认课</span>
-              <button class="delete-button" data-delete-coach="${coach.id}" title="删除">×</button>
-            </div>
-          `,
-        )
-        .join("")
-    : emptyHtml();
 }
 
 function renderLessons() {
@@ -232,100 +189,12 @@ function renderLessons() {
     : emptyHtml();
 }
 
-function renderPlanner() {
-  $("monthlyBudget").value = state.settings.monthlyBudget;
-  $("targetLessons").value = state.settings.targetLessons;
-
-  const budget = Number(state.settings.monthlyBudget);
-  const target = Number(state.settings.targetLessons);
-  const coaches = [...state.coaches].sort((a, b) => coachUnitCost(a) - coachUnitCost(b));
-  const lessons = monthLessons();
-  const spent = lessons.reduce((sum, lesson) => sum + lessonCost(lesson), 0);
-  const remaining = Math.max(0, budget - spent);
-
-  if (!coaches.length) {
-    $("planOutput").innerHTML = emptyHtml();
-    return;
-  }
-
-  const cheapest = coaches[0];
-  const cheapestCount = Math.floor(budget / coachUnitCost(cheapest));
-  const extraCount = Math.floor(remaining / coachUnitCost(cheapest));
-  const balanced = buildBalancedPlan(coaches, target, budget);
-  const premium = buildPremiumPlan(coaches, target, budget);
-  const premiumCoach = [...coaches].sort((a, b) => coachUnitCost(b) - coachUnitCost(a))[0];
-
-  $("planOutput").innerHTML = `
-    <div class="plan-card">
-      <strong>本月还能加 ${extraCount} 节最低成本课</strong>
-      <span class="muted">按 ${escapeHtml(cheapest.name)} 的默认 ${cheapest.defaultMinutes} 分钟课计算。</span>
-      <div class="plan-line"><span>整月最低成本上限</span><b>${cheapestCount} 节</b></div>
-    </div>
-    ${planCard("均衡安排", balanced)}
-    ${planCard(`${premiumCoach.name}优先`, premium)}
-  `;
-}
-
-function buildBalancedPlan(coaches, target, budget) {
-  const counts = Object.fromEntries(coaches.map((coach) => [coach.id, 0]));
-  let spend = 0;
-  for (let index = 0; index < target; index += 1) {
-    const coach = coaches[index % coaches.length];
-    const cost = coachUnitCost(coach);
-    if (spend + cost > budget) break;
-    counts[coach.id] += 1;
-    spend += cost;
-  }
-  return { counts, spend };
-}
-
-function buildPremiumPlan(coaches, target, budget) {
-  const byPriceHigh = [...coaches].sort((a, b) => coachUnitCost(b) - coachUnitCost(a));
-  const counts = Object.fromEntries(coaches.map((coach) => [coach.id, 0]));
-  let spend = 0;
-  const premiumTarget = Math.ceil(target * 0.7);
-  for (const coach of byPriceHigh) {
-    while (counts[coach.id] < premiumTarget && Object.values(counts).reduce((sum, count) => sum + count, 0) < target) {
-      const cost = coachUnitCost(coach);
-      if (spend + cost > budget) break;
-      counts[coach.id] += 1;
-      spend += cost;
-    }
-  }
-  for (const coach of [...coaches].sort((a, b) => coachUnitCost(a) - coachUnitCost(b))) {
-    while (Object.values(counts).reduce((sum, count) => sum + count, 0) < target) {
-      const cost = coachUnitCost(coach);
-      if (spend + cost > budget) break;
-      counts[coach.id] += 1;
-      spend += cost;
-    }
-  }
-  return { counts, spend };
-}
-
-function planCard(title, plan) {
-  const total = Object.values(plan.counts).reduce((sum, count) => sum + count, 0);
-  const lines = state.coaches
-    .filter((coach) => plan.counts[coach.id] > 0)
-    .map((coach) => `<div class="plan-line"><span>${escapeHtml(coach.name)}</span><b>${plan.counts[coach.id]} 节</b></div>`)
-    .join("");
-  return `
-    <div class="plan-card">
-      <strong>${escapeHtml(title)}: ${total} 节，${money(plan.spend)}</strong>
-      ${lines || '<span class="muted">预算不足以安排课程。</span>'}
-    </div>
-  `;
-}
-
 function render() {
   $("monthPicker").value = selectedMonth;
   renderSelects();
   renderSummary();
   renderSettlement();
-  renderChildren();
-  renderCoaches();
   renderLessons();
-  renderPlanner();
 }
 
 function addLesson(event) {
@@ -345,8 +214,6 @@ function addLesson(event) {
 
 function deleteBy(type, id) {
   if (type === "lesson") state.lessons = state.lessons.filter((item) => item.id !== id);
-  if (type === "child") state.children = state.children.filter((item) => item.id !== id);
-  if (type === "coach") state.coaches = state.coaches.filter((item) => item.id !== id);
   saveState();
   render();
 }
@@ -413,34 +280,6 @@ function bindEvents() {
     const coach = state.coaches.find((item) => item.id === $("lessonCoach").value);
     if (coach) $("lessonMinutes").value = coach.defaultMinutes;
   });
-  $("childForm").addEventListener("submit", (event) => {
-    event.preventDefault();
-    state.children.push({ id: crypto.randomUUID(), name: $("childName").value.trim() });
-    $("childName").value = "";
-    saveState();
-    render();
-  });
-  $("coachForm").addEventListener("submit", (event) => {
-    event.preventDefault();
-    state.coaches.push({
-      id: crypto.randomUUID(),
-      name: $("coachName").value.trim(),
-      rate: Number($("coachRate").value),
-      rateMode: $("coachRateMode").value,
-      defaultMinutes: Number($("coachMinutes").value),
-      color: $("coachColor").value,
-    });
-    event.target.reset();
-    $("coachColor").value = "#176b87";
-    saveState();
-    render();
-  });
-  $("saveBudgetBtn").addEventListener("click", () => {
-    state.settings.monthlyBudget = Number($("monthlyBudget").value);
-    state.settings.targetLessons = Number($("targetLessons").value);
-    saveState();
-    render();
-  });
   $("saveSettlementBtn").addEventListener("click", () => {
     const lastDate = $("lastSettlementDate").value;
     const nextDate = $("nextSettlementDate").value;
@@ -476,7 +315,7 @@ function bindEvents() {
     if (!file) return;
     const imported = JSON.parse(await file.text());
     if (!imported.children || !imported.coaches || !imported.lessons) return alert("这个 JSON 不是有效备份。");
-    state = imported;
+    state = migrateStarterData(imported).state;
     saveState();
     render();
   });
@@ -489,11 +328,7 @@ function bindEvents() {
   });
   document.body.addEventListener("click", (event) => {
     const lessonId = event.target.dataset.deleteLesson;
-    const childId = event.target.dataset.deleteChild;
-    const coachId = event.target.dataset.deleteCoach;
     if (lessonId) deleteBy("lesson", lessonId);
-    if (childId) deleteBy("child", childId);
-    if (coachId) deleteBy("coach", coachId);
   });
 }
 
