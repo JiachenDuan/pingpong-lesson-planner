@@ -15,11 +15,9 @@ const seedState = {
 
 let state = loadState();
 let selectedMonth = new Date().toISOString().slice(0, 7);
-let filters = { childId: "all", coachId: "all" };
 
 const $ = (id) => document.getElementById(id);
 const money = (value) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value || 0);
-const dateLabel = (date) => new Date(`${date}T12:00:00`).toLocaleDateString("zh-CN", { month: "short", day: "numeric", weekday: "short" });
 const shortDateLabel = (date) => new Date(`${date}T12:00:00`).toLocaleDateString("zh-CN", { month: "short", day: "numeric" });
 
 function loadState() {
@@ -100,9 +98,7 @@ function lessonCost(lesson) {
 function monthLessons() {
   return state.lessons
     .filter((lesson) => lesson.date.startsWith(selectedMonth))
-    .filter((lesson) => filters.childId === "all" || lesson.childId === filters.childId)
-    .filter((lesson) => filters.coachId === "all" || lesson.coachId === filters.coachId)
-    .sort((a, b) => b.date.localeCompare(a.date));
+    .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 function settlementLessons() {
@@ -110,9 +106,7 @@ function settlementLessons() {
   const nextDate = state.settings.nextSettlementDate || endOfMonth(selectedMonth);
   return state.lessons
     .filter((lesson) => (!lastDate || lesson.date > lastDate) && lesson.date <= nextDate)
-    .filter((lesson) => filters.childId === "all" || lesson.childId === filters.childId)
-    .filter((lesson) => filters.coachId === "all" || lesson.coachId === filters.coachId)
-    .sort((a, b) => b.date.localeCompare(a.date));
+    .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 function renderSelects() {
@@ -122,12 +116,7 @@ function renderSelects() {
 
   $("lessonChild").innerHTML = childOptions;
   $("lessonCoach").innerHTML = coachOptions;
-  $("childFilter").innerHTML = `<option value="all">所有孩子</option>${childOptions}`;
-  $("coachFilter").innerHTML = `<option value="all">所有教练</option>${coachOptions}`;
   $("lessonChildField").classList.toggle("is-hidden", !hasMultipleChildren);
-  $("childFilter").classList.toggle("is-hidden", !hasMultipleChildren);
-  $("childFilter").value = filters.childId;
-  $("coachFilter").value = filters.coachId;
 
   const selectedCoach = state.coaches.find((coach) => coach.id === $("lessonCoach").value) || state.coaches[0];
   if (selectedCoach && !$("lessonMinutes").value) $("lessonMinutes").value = selectedCoach.defaultMinutes;
@@ -164,29 +153,57 @@ function renderSettlement() {
   $("settlementSpend").textContent = money(totalSpend);
 }
 
-function renderLessons() {
+function renderCalendar() {
   const lessons = monthLessons();
-  $("lessonList").innerHTML = lessons.length
-    ? lessons
-        .map((lesson) => {
-          const child = state.children.find((item) => item.id === lesson.childId);
-          const coach = state.coaches.find((item) => item.id === lesson.coachId);
-          return `
-            <div class="lesson-row">
-              <span class="tag">${dateLabel(lesson.date)}</span>
-              <div class="lesson-main">
-                <strong>${escapeHtml(child?.name || "已删除孩子")}</strong>
-                <span class="muted">${escapeHtml(lesson.note || "无备注")}</span>
-              </div>
-              <span>${escapeHtml(coach?.name || "已删除教练")}</span>
-              <span>${lesson.minutes} 分钟</span>
-              <span class="money">${money(lessonCost(lesson))}</span>
-              <button class="delete-button" data-delete-lesson="${lesson.id}" title="删除">×</button>
-            </div>
-          `;
-        })
-        .join("")
-    : emptyHtml();
+  const monthSpend = lessons.reduce((sum, lesson) => sum + lessonCost(lesson), 0);
+  const settlementSpend = settlementLessons().reduce((sum, lesson) => sum + lessonCost(lesson), 0);
+  const lessonsByDate = lessons.reduce((map, lesson) => {
+    if (!map.has(lesson.date)) map.set(lesson.date, []);
+    map.get(lesson.date).push(lesson);
+    return map;
+  }, new Map());
+  const [year, month] = selectedMonth.split("-").map(Number);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const firstWeekday = new Date(year, month - 1, 1).getDay();
+  const leadingBlanks = (firstWeekday + 6) % 7;
+  const today = new Date().toISOString().slice(0, 10);
+  const cells = [];
+
+  $("calendarMonthSpend").textContent = money(monthSpend);
+  $("calendarSettlementSpend").textContent = money(settlementSpend);
+
+  for (let index = 0; index < leadingBlanks; index += 1) {
+    cells.push('<div class="calendar-day calendar-day-empty"></div>');
+  }
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const date = `${selectedMonth}-${String(day).padStart(2, "0")}`;
+    const dayLessons = lessonsByDate.get(date) || [];
+    const daySpend = dayLessons.reduce((sum, lesson) => sum + lessonCost(lesson), 0);
+    const lessonItems = dayLessons
+      .map((lesson) => {
+        const coach = state.coaches.find((item) => item.id === lesson.coachId);
+        return `
+          <div class="calendar-lesson">
+            <span>${escapeHtml(coach?.name || "已删除教练")} · ${lesson.minutes}m</span>
+            <button class="calendar-delete" data-delete-lesson="${lesson.id}" title="删除课程" aria-label="删除课程">×</button>
+          </div>
+        `;
+      })
+      .join("");
+
+    cells.push(`
+      <div class="calendar-day ${date === today ? "is-today" : ""} ${dayLessons.length ? "has-lessons" : ""}">
+        <div class="calendar-day-top">
+          <span>${day}</span>
+          ${daySpend ? `<strong>${money(daySpend)}</strong>` : ""}
+        </div>
+        ${lessonItems ? `<div class="calendar-lessons">${lessonItems}</div>` : ""}
+      </div>
+    `);
+  }
+
+  $("calendarGrid").innerHTML = cells.join("");
 }
 
 function render() {
@@ -194,7 +211,7 @@ function render() {
   renderSelects();
   renderSummary();
   renderSettlement();
-  renderLessons();
+  renderCalendar();
 }
 
 function addLesson(event) {
@@ -247,10 +264,6 @@ function download(filename, content, type) {
   URL.revokeObjectURL(url);
 }
 
-function emptyHtml() {
-  return $("emptyTemplate").innerHTML;
-}
-
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
 }
@@ -300,14 +313,6 @@ function bindEvents() {
     saveState();
     render();
   });
-  $("childFilter").addEventListener("change", (event) => {
-    filters.childId = event.target.value;
-    render();
-  });
-  $("coachFilter").addEventListener("change", (event) => {
-    filters.coachId = event.target.value;
-    render();
-  });
   $("exportJsonBtn").addEventListener("click", exportJson);
   $("csvBtn").addEventListener("click", exportCsv);
   $("importJsonInput").addEventListener("change", async (event) => {
@@ -327,8 +332,8 @@ function bindEvents() {
     render();
   });
   document.body.addEventListener("click", (event) => {
-    const lessonId = event.target.dataset.deleteLesson;
-    if (lessonId) deleteBy("lesson", lessonId);
+    const deleteButton = event.target.closest("[data-delete-lesson]");
+    if (deleteButton) deleteBy("lesson", deleteButton.dataset.deleteLesson);
   });
 }
 

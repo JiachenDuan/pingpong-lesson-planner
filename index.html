@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ping Pong Lessons</title>
-    <link rel="stylesheet" href="./styles.css?v=20260802-simple" />
+    <link rel="stylesheet" href="./styles.css?v=20260802-calendar" />
   </head>
   <body>
     <div class="app-shell">
@@ -115,21 +115,35 @@
 
         <section class="panel">
           <div class="panel-header">
-            <h2>本月明细</h2>
-            <div class="filters">
-              <select id="childFilter"></select>
-              <select id="coachFilter"></select>
+            <div>
+              <h2>课程日历</h2>
+              <p class="muted">每个日期显示当天课程和花费。</p>
+            </div>
+            <div class="calendar-totals">
+              <div>
+                <span>本月花销</span>
+                <strong id="calendarMonthSpend">$0</strong>
+              </div>
+              <div>
+                <span>本次结算</span>
+                <strong id="calendarSettlementSpend">$0</strong>
+              </div>
             </div>
           </div>
-          <div id="lessonList" class="lesson-list"></div>
+          <div class="calendar-weekdays">
+            <span>一</span>
+            <span>二</span>
+            <span>三</span>
+            <span>四</span>
+            <span>五</span>
+            <span>六</span>
+            <span>日</span>
+          </div>
+          <div id="calendarGrid" class="calendar-grid"></div>
         </section>
       </main>
     </div>
 
-    <template id="emptyTemplate">
-      <div class="empty-state">还没有记录。</div>
-    </template>
-
-    <script src="./app.js?v=20260802-simple"></script>
+    <script src="./app.js?v=20260802-calendar"></script>
   </body>
 </html>
