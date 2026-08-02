@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ping Pong Lessons</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">家庭乒乓课程账本</p>
+          <h1>Ping Pong Lessons</h1>
+        </div>
+        <div class="top-actions">
+          <button class="icon-button" id="exportJsonBtn" title="导出备份 JSON" aria-label="导出备份 JSON">⬇</button>
+          <label class="icon-button" title="导入备份 JSON" aria-label="导入备份 JSON">
+            ⬆
+            <input type="file" id="importJsonInput" accept="application/json" hidden />
+          </label>
+          <button class="icon-button danger" id="resetBtn" title="清空本机数据" aria-label="清空本机数据">×</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="summary-band">
+          <div class="month-control">
+            <button class="icon-button" id="prevMonthBtn" title="上个月" aria-label="上个月">‹</button>
+            <input type="month" id="monthPicker" />
+            <button class="icon-button" id="nextMonthBtn" title="下个月" aria-label="下个月">›</button>
+          </div>
+          <div class="summary-grid">
+            <div class="metric">
+              <span>本月节数</span>
+              <strong id="monthLessonCount">0</strong>
+            </div>
+            <div class="metric">
+              <span>本月时长</span>
+              <strong id="monthHours">0h</strong>
+            </div>
+            <div class="metric">
+              <span>本月花费</span>
+              <strong id="monthSpend">$0</strong>
+            </div>
+            <div class="metric">
+              <span>预算余额</span>
+              <strong id="budgetLeft">$0</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="workspace-grid">
+          <div class="panel span-2">
+            <div class="panel-header">
+              <h2>记录一节课</h2>
+              <button id="csvBtn" class="secondary-button">导出 CSV</button>
+            </div>
+            <form id="lessonForm" class="lesson-form">
+              <label>
+                日期
+                <input type="date" id="lessonDate" required />
+              </label>
+              <label>
+                孩子
+                <select id="lessonChild" required></select>
+              </label>
+              <label>
+                教练
+                <select id="lessonCoach" required></select>
+              </label>
+              <label>
+                分钟
+                <input type="number" id="lessonMinutes" min="15" step="5" required />
+              </label>
+              <label class="span-2">
+                备注
+                <input type="text" id="lessonNote" placeholder="例如：发球、多球、比赛课" />
+              </label>
+              <button type="submit" class="primary-button">添加课程</button>
+            </form>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>预算计划</h2>
+            </div>
+            <div class="budget-controls">
+              <label>
+                月预算
+                <input type="number" id="monthlyBudget" min="0" step="10" />
+              </label>
+              <label>
+                目标节数
+                <input type="number" id="targetLessons" min="0" step="1" />
+              </label>
+              <button id="saveBudgetBtn" class="primary-button">保存预算</button>
+            </div>
+            <div id="planOutput" class="plan-output"></div>
+          </div>
+        </section>
+
+        <section class="workspace-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>孩子</h2>
+            </div>
+            <form id="childForm" class="inline-form">
+              <input type="text" id="childName" placeholder="名字" required />
+              <button class="primary-button" type="submit">添加</button>
+            </form>
+            <div id="childrenList" class="list"></div>
+          </div>
+
+          <div class="panel span-2">
+            <div class="panel-header">
+              <h2>教练和费用</h2>
+            </div>
+            <form id="coachForm" class="coach-form">
+              <input type="text" id="coachName" placeholder="教练名字" required />
+              <input type="number" id="coachRate" min="0" step="1" placeholder="费用" required />
+              <select id="coachRateMode">
+                <option value="hour">每小时</option>
+                <option value="session">每节课</option>
+              </select>
+              <input type="number" id="coachMinutes" min="15" step="5" placeholder="默认分钟" required />
+              <input type="color" id="coachColor" value="#176b87" aria-label="颜色" />
+              <button class="primary-button" type="submit">添加教练</button>
+            </form>
+            <div id="coachesList" class="coach-list"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>本月明细</h2>
+            <div class="filters">
+              <select id="childFilter"></select>
+              <select id="coachFilter"></select>
+            </div>
+          </div>
+          <div id="lessonList" class="lesson-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <template id="emptyTemplate">
+      <div class="empty-state">还没有记录。</div>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
