@@ -1,14 +1,14 @@
 const storageKey = "pingpongLessonPlanner.v1";
 
 const seedState = {
-  children: [{ id: crypto.randomUUID(), name: "孩子" }],
+  children: [{ id: "child-kyson", name: "Kyson" }],
   coaches: [
-    { id: crypto.randomUUID(), name: "主教练", rate: 90, rateMode: "hour", defaultMinutes: 60, color: "#176b87" },
-    { id: crypto.randomUUID(), name: "陪练", rate: 55, rateMode: "hour", defaultMinutes: 60, color: "#3f7d58" },
+    { id: "coach-tian", name: "田教练", rate: 130, rateMode: "hour", defaultMinutes: 60, color: "#176b87" },
+    { id: "coach-eric", name: "Eric教练", rate: 90, rateMode: "hour", defaultMinutes: 60, color: "#3f7d58" },
   ],
   lessons: [],
   settings: {
-    monthlyBudget: 800,
+    monthlyBudget: 1000,
     targetLessons: 8,
   },
 };
@@ -24,11 +24,58 @@ const dateLabel = (date) => new Date(`${date}T12:00:00`).toLocaleDateString("zh-
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey));
-    if (saved?.children && saved?.coaches && saved?.lessons) return saved;
+    if (saved?.children && saved?.coaches && saved?.lessons) {
+      const migrated = migrateStarterData(saved);
+      if (migrated.changed) localStorage.setItem(storageKey, JSON.stringify(migrated.state));
+      return migrated.state;
+    }
   } catch {
     localStorage.removeItem(storageKey);
   }
   return seedState;
+}
+
+function migrateStarterData(saved) {
+  const next = structuredClone(saved);
+  let changed = false;
+
+  if (!next.settings) {
+    changed = true;
+    next.settings = structuredClone(seedState.settings);
+  }
+
+  next.children = next.children.map((child) => {
+    if (child.name !== "孩子") return child;
+    changed = true;
+    return { ...child, name: "Kyson" };
+  });
+
+  next.coaches = next.coaches.map((coach) => {
+    if (coach.name === "主教练") {
+      changed = true;
+      return { ...coach, name: "田教练", rate: 130, rateMode: "hour", defaultMinutes: 60, color: "#176b87" };
+    }
+    if (coach.name === "陪练") {
+      changed = true;
+      return { ...coach, name: "Eric教练", rate: 90, rateMode: "hour", defaultMinutes: 60, color: "#3f7d58" };
+    }
+    return coach;
+  });
+
+  if (!next.children.length) {
+    changed = true;
+    next.children.push(...seedState.children);
+  }
+  if (!next.coaches.length) {
+    changed = true;
+    next.coaches.push(...seedState.coaches);
+  }
+  if (Number(next.settings?.monthlyBudget) === 800 && Number(next.settings?.targetLessons) === 8) {
+    changed = true;
+    next.settings.monthlyBudget = 1000;
+  }
+
+  return { state: next, changed };
 }
 
 function saveState() {
@@ -161,6 +208,7 @@ function renderPlanner() {
   const extraCount = Math.floor(remaining / coachUnitCost(cheapest));
   const balanced = buildBalancedPlan(coaches, target, budget);
   const premium = buildPremiumPlan(coaches, target, budget);
+  const premiumCoach = [...coaches].sort((a, b) => coachUnitCost(b) - coachUnitCost(a))[0];
 
   $("planOutput").innerHTML = `
     <div class="plan-card">
@@ -169,7 +217,7 @@ function renderPlanner() {
       <div class="plan-line"><span>整月最低成本上限</span><b>${cheapestCount} 节</b></div>
     </div>
     ${planCard("均衡安排", balanced)}
-    ${planCard("主教练优先", premium)}
+    ${planCard(`${premiumCoach.name}优先`, premium)}
   `;
 }
 
@@ -190,7 +238,7 @@ function buildPremiumPlan(coaches, target, budget) {
   const byPriceHigh = [...coaches].sort((a, b) => coachUnitCost(b) - coachUnitCost(a));
   const counts = Object.fromEntries(coaches.map((coach) => [coach.id, 0]));
   let spend = 0;
-  const premiumTarget = Math.ceil(target / 2);
+  const premiumTarget = Math.ceil(target * 0.7);
   for (const coach of byPriceHigh) {
     while (counts[coach.id] < premiumTarget && Object.values(counts).reduce((sum, count) => sum + count, 0) < target) {
       const cost = coachUnitCost(coach);
@@ -218,7 +266,7 @@ function planCard(title, plan) {
     .join("");
   return `
     <div class="plan-card">
-      <strong>${title}: ${total} 节，${money(plan.spend)}</strong>
+      <strong>${escapeHtml(title)}: ${total} 节，${money(plan.spend)}</strong>
       ${lines || '<span class="muted">预算不足以安排课程。</span>'}
     </div>
   `;
