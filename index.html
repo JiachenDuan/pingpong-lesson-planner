@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ping Pong Lessons</title>
-    <link rel="stylesheet" href="./styles.css?v=20260802-calendar-top" />
+    <link rel="stylesheet" href="./styles.css?v=20260802-calendar-overview" />
   </head>
   <body>
     <div class="app-shell">
@@ -45,6 +45,14 @@
               <span>本次结算</span>
               <strong id="calendarSettlementSpend">$0</strong>
             </div>
+            <div>
+              <span>本月节数</span>
+              <strong id="monthLessonCount">0</strong>
+            </div>
+            <div>
+              <span>本月时长</span>
+              <strong id="monthHours">0h</strong>
+            </div>
           </div>
           <div class="calendar-weekdays">
             <span>一</span>
@@ -56,23 +64,6 @@
             <span>日</span>
           </div>
           <div id="calendarGrid" class="calendar-grid"></div>
-        </section>
-
-        <section class="summary-band summary-only">
-          <div class="summary-grid summary-grid-compact">
-            <div class="metric">
-              <span>本月节数</span>
-              <strong id="monthLessonCount">0</strong>
-            </div>
-            <div class="metric">
-              <span>本月时长</span>
-              <strong id="monthHours">0h</strong>
-            </div>
-            <div class="metric">
-              <span>本月花费</span>
-              <strong id="monthSpend">$0</strong>
-            </div>
-          </div>
         </section>
 
         <section class="settlement-panel panel">
@@ -145,6 +136,6 @@
       </main>
     </div>
 
-    <script src="./app.js?v=20260802-calendar-top"></script>
+    <script src="./app.js?v=20260802-calendar-overview"></script>
   </body>
 </html>

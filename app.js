@@ -126,11 +126,9 @@ function renderSelects() {
 function renderSummary() {
   const lessons = monthLessons();
   const totalMinutes = lessons.reduce((sum, lesson) => sum + Number(lesson.minutes), 0);
-  const totalSpend = lessons.reduce((sum, lesson) => sum + lessonCost(lesson), 0);
 
   $("monthLessonCount").textContent = lessons.length;
   $("monthHours").textContent = `${(totalMinutes / 60).toFixed(totalMinutes % 60 ? 1 : 0)}h`;
-  $("monthSpend").textContent = money(totalSpend);
 }
 
 function renderSettlement() {

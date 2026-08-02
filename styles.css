@@ -71,8 +71,7 @@ h2 {
 }
 
 .top-actions,
-.month-control,
-.calendar-totals {
+.month-control {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -320,12 +319,13 @@ input[type="color"] {
 }
 
 .calendar-totals {
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
   margin-bottom: 14px;
 }
 
 .calendar-totals div {
-  min-width: 128px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fbfcfb;
@@ -521,8 +521,7 @@ input[type="color"] {
   }
 
   .calendar-totals {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .summary-grid,
