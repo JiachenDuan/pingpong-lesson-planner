@@ -127,6 +127,16 @@ h2 {
   padding: 14px;
 }
 
+.month-control input {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+}
+
+.month-control .icon-button {
+  flex: 0 0 auto;
+}
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -176,6 +186,7 @@ h2 {
 
 label {
   display: grid;
+  min-width: 0;
   gap: 6px;
   color: var(--muted);
   font-size: 0.82rem;
@@ -185,6 +196,7 @@ label {
 input,
 select {
   width: 100%;
+  min-width: 0;
   min-height: 40px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -219,6 +231,49 @@ input[type="color"] {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+
+.settlement-panel {
+  margin-bottom: 16px;
+}
+
+.settlement-panel .panel-header {
+  align-items: flex-start;
+}
+
+.settlement-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.settlement-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+
+.mini-metric {
+  min-height: 74px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfb;
+  padding: 12px;
+}
+
+.mini-metric span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.mini-metric strong {
+  color: var(--green);
+  font-size: 1.35rem;
 }
 
 .primary-button,
@@ -393,6 +448,10 @@ input[type="color"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .settlement-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .lesson-row,
   .coach-row {
     grid-template-columns: 1fr auto;
@@ -416,8 +475,44 @@ input[type="color"] {
   }
 
   .top-actions,
-  .filters {
+  .filters,
+  .settlement-actions {
     width: 100%;
+  }
+
+  .month-control {
+    display: grid;
+    grid-template-columns: 40px 40px minmax(0, 1fr);
+    grid-template-areas:
+      "prev next ."
+      "picker picker picker";
+    justify-content: start;
+  }
+
+  .month-control input {
+    grid-area: picker;
+    width: 100%;
+  }
+
+  #prevMonthBtn {
+    grid-area: prev;
+  }
+
+  #nextMonthBtn {
+    grid-area: next;
+  }
+
+  .settlement-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-content: stretch;
+  }
+
+  .settlement-actions button {
+    width: 100%;
+    min-width: 0;
+    padding: 0 8px;
+    white-space: normal;
   }
 
   .filters {
@@ -427,7 +522,8 @@ input[type="color"] {
   .summary-grid,
   .lesson-form,
   .coach-form,
-  .budget-controls {
+  .budget-controls,
+  .settlement-grid {
     grid-template-columns: 1fr;
   }
 

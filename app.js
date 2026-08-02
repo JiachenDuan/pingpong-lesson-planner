@@ -10,6 +10,8 @@ const seedState = {
   settings: {
     monthlyBudget: 2000,
     targetLessons: 8,
+    lastSettlementDate: "",
+    nextSettlementDate: endOfMonth(new Date().toISOString().slice(0, 7)),
   },
 };
 
@@ -20,6 +22,7 @@ let filters = { childId: "all", coachId: "all" };
 const $ = (id) => document.getElementById(id);
 const money = (value) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value || 0);
 const dateLabel = (date) => new Date(`${date}T12:00:00`).toLocaleDateString("zh-CN", { month: "short", day: "numeric", weekday: "short" });
+const shortDateLabel = (date) => new Date(`${date}T12:00:00`).toLocaleDateString("zh-CN", { month: "short", day: "numeric" });
 
 function loadState() {
   try {
@@ -42,6 +45,14 @@ function migrateStarterData(saved) {
   if (!next.settings) {
     changed = true;
     next.settings = structuredClone(seedState.settings);
+  }
+  if (!("lastSettlementDate" in next.settings)) {
+    changed = true;
+    next.settings.lastSettlementDate = "";
+  }
+  if (!next.settings.nextSettlementDate) {
+    changed = true;
+    next.settings.nextSettlementDate = endOfMonth(new Date().toISOString().slice(0, 7));
   }
 
   next.children = next.children.map((child) => {
@@ -100,6 +111,16 @@ function monthLessons() {
     .sort((a, b) => b.date.localeCompare(a.date));
 }
 
+function settlementLessons() {
+  const lastDate = state.settings.lastSettlementDate;
+  const nextDate = state.settings.nextSettlementDate || endOfMonth(selectedMonth);
+  return state.lessons
+    .filter((lesson) => (!lastDate || lesson.date > lastDate) && lesson.date <= nextDate)
+    .filter((lesson) => filters.childId === "all" || lesson.childId === filters.childId)
+    .filter((lesson) => filters.coachId === "all" || lesson.coachId === filters.coachId)
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
 function renderSelects() {
   const childOptions = state.children.map((child) => `<option value="${child.id}">${escapeHtml(child.name)}</option>`).join("");
   const coachOptions = state.coaches.map((coach) => `<option value="${coach.id}">${escapeHtml(coach.name)}</option>`).join("");
@@ -129,6 +150,27 @@ function renderSummary() {
   $("monthSpend").textContent = money(totalSpend);
   $("budgetLeft").textContent = money(left);
   $("budgetLeft").className = left < 0 ? "over" : "under";
+}
+
+function renderSettlement() {
+  if (!$("lastSettlementDate")) return;
+
+  if (!state.settings.nextSettlementDate) {
+    state.settings.nextSettlementDate = endOfMonth(selectedMonth);
+  }
+
+  const lessons = settlementLessons();
+  const totalMinutes = lessons.reduce((sum, lesson) => sum + Number(lesson.minutes), 0);
+  const totalSpend = lessons.reduce((sum, lesson) => sum + lessonCost(lesson), 0);
+  const lastDate = state.settings.lastSettlementDate;
+  const nextDate = state.settings.nextSettlementDate;
+
+  $("lastSettlementDate").value = lastDate;
+  $("nextSettlementDate").value = nextDate;
+  $("settlementRange").textContent = lastDate ? `${shortDateLabel(lastDate)} 后 - ${shortDateLabel(nextDate)}` : `首次结算 - ${shortDateLabel(nextDate)}`;
+  $("settlementLessonCount").textContent = lessons.length;
+  $("settlementHours").textContent = `${(totalMinutes / 60).toFixed(totalMinutes % 60 ? 1 : 0)}h`;
+  $("settlementSpend").textContent = money(totalSpend);
 }
 
 function renderChildren() {
@@ -279,6 +321,7 @@ function render() {
   $("monthPicker").value = selectedMonth;
   renderSelects();
   renderSummary();
+  renderSettlement();
   renderChildren();
   renderCoaches();
   renderLessons();
@@ -352,6 +395,11 @@ function shiftMonth(delta) {
   render();
 }
 
+function endOfMonth(month) {
+  const [year, monthNumber] = month.split("-").map(Number);
+  return new Date(year, monthNumber, 0).toISOString().slice(0, 10);
+}
+
 function bindEvents() {
   $("lessonDate").value = new Date().toISOString().slice(0, 10);
   $("monthPicker").addEventListener("change", (event) => {
@@ -390,6 +438,26 @@ function bindEvents() {
   $("saveBudgetBtn").addEventListener("click", () => {
     state.settings.monthlyBudget = Number($("monthlyBudget").value);
     state.settings.targetLessons = Number($("targetLessons").value);
+    saveState();
+    render();
+  });
+  $("saveSettlementBtn").addEventListener("click", () => {
+    const lastDate = $("lastSettlementDate").value;
+    const nextDate = $("nextSettlementDate").value;
+    if (lastDate && nextDate && lastDate >= nextDate) return alert("下次结算日必须晚于上次结算日。");
+    state.settings.lastSettlementDate = lastDate;
+    state.settings.nextSettlementDate = nextDate || endOfMonth(selectedMonth);
+    saveState();
+    render();
+  });
+  $("markSettledBtn").addEventListener("click", () => {
+    const nextDate = state.settings.nextSettlementDate || endOfMonth(selectedMonth);
+    state.settings.lastSettlementDate = nextDate;
+    state.settings.nextSettlementDate = endOfMonth(nextDate.slice(0, 7));
+    if (state.settings.nextSettlementDate <= nextDate) {
+      const [year, month] = nextDate.slice(0, 7).split("-").map(Number);
+      state.settings.nextSettlementDate = endOfMonth(new Date(year, month, 1).toISOString().slice(0, 7));
+    }
     saveState();
     render();
   });

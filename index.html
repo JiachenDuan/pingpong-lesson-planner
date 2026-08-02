@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ping Pong Lessons</title>
-    <link rel="stylesheet" href="./styles.css?v=20260802-hide-single-child" />
+    <link rel="stylesheet" href="./styles.css?v=20260802-settlement" />
   </head>
   <body>
     <div class="app-shell">
@@ -46,6 +46,41 @@
             <div class="metric">
               <span>预算余额</span>
               <strong id="budgetLeft">$0</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="settlement-panel panel">
+          <div class="panel-header">
+            <div>
+              <h2>结算周期</h2>
+              <p id="settlementRange" class="muted">首次结算</p>
+            </div>
+            <div class="settlement-actions">
+              <button id="saveSettlementBtn" class="primary-button">保存结算日</button>
+              <button id="markSettledBtn" class="secondary-button">标记已结算</button>
+            </div>
+          </div>
+          <div class="settlement-grid">
+            <label>
+              上次结算日
+              <input type="date" id="lastSettlementDate" />
+            </label>
+            <label>
+              下次结算日
+              <input type="date" id="nextSettlementDate" />
+            </label>
+            <div class="mini-metric">
+              <span>周期节数</span>
+              <strong id="settlementLessonCount">0</strong>
+            </div>
+            <div class="mini-metric">
+              <span>周期时长</span>
+              <strong id="settlementHours">0h</strong>
+            </div>
+            <div class="mini-metric">
+              <span>需要结算</span>
+              <strong id="settlementSpend">$0</strong>
             </div>
           </div>
         </section>
@@ -148,6 +183,6 @@
       <div class="empty-state">还没有记录。</div>
     </template>
 
-    <script src="./app.js?v=20260802-hide-single-child"></script>
+    <script src="./app.js?v=20260802-settlement"></script>
   </body>
 </html>
