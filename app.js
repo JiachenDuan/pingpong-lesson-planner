@@ -8,7 +8,7 @@ const seedState = {
   ],
   lessons: [],
   settings: {
-    monthlyBudget: 1000,
+    monthlyBudget: 2000,
     targetLessons: 8,
   },
 };
@@ -70,9 +70,9 @@ function migrateStarterData(saved) {
     changed = true;
     next.coaches.push(...seedState.coaches);
   }
-  if (Number(next.settings?.monthlyBudget) === 800 && Number(next.settings?.targetLessons) === 8) {
+  if ([800, 1000].includes(Number(next.settings?.monthlyBudget)) && Number(next.settings?.targetLessons) === 8) {
     changed = true;
-    next.settings.monthlyBudget = 1000;
+    next.settings.monthlyBudget = 2000;
   }
 
   return { state: next, changed };
