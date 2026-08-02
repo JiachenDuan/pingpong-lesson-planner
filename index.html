@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ping Pong Lessons</title>
-    <link rel="stylesheet" href="./styles.css?v=20260802-day-modal" />
+    <link rel="stylesheet" href="./styles.css?v=20260802-two-summary-boxes" />
   </head>
   <body>
     <div class="app-shell">
@@ -37,21 +37,21 @@
             </div>
           </div>
           <div class="calendar-totals">
-            <div>
-              <span>本月花销</span>
-              <strong id="calendarMonthSpend">$0</strong>
+            <div class="calendar-summary-box month-summary-box">
+              <span>本月</span>
+              <div class="summary-box-grid">
+                <strong id="calendarMonthSpend">$0</strong>
+                <b id="monthLessonCount">0 节</b>
+                <b id="monthHours">0h</b>
+              </div>
             </div>
-            <div>
+            <div class="calendar-summary-box settlement-summary-box">
               <span>本次结算</span>
-              <strong id="calendarSettlementSpend">$0</strong>
-            </div>
-            <div>
-              <span>本月节数</span>
-              <strong id="monthLessonCount">0</strong>
-            </div>
-            <div>
-              <span>本月时长</span>
-              <strong id="monthHours">0h</strong>
+              <div class="summary-box-grid">
+                <strong id="calendarSettlementSpend">$0</strong>
+                <b id="calendarSettlementCount">0 节</b>
+                <b id="calendarSettlementHours">0h</b>
+              </div>
             </div>
           </div>
           <div class="calendar-weekdays">
@@ -149,6 +149,6 @@
       </div>
     </div>
 
-    <script src="./app.js?v=20260802-day-modal"></script>
+    <script src="./app.js?v=20260802-two-summary-boxes"></script>
   </body>
 </html>

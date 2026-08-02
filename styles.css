@@ -70,9 +70,14 @@ h2 {
   font-size: 1.05rem;
 }
 
-.top-actions,
-.month-control {
+.top-actions {
   display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.month-control {
+  display: grid;
   align-items: center;
   gap: 8px;
 }
@@ -126,18 +131,19 @@ h2 {
 }
 
 .month-control {
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
   justify-content: center;
   padding: 14px;
+  width: min(420px, 100%);
 }
 
 .month-control input {
-  flex: 1 1 0;
   min-width: 0;
-  width: auto;
+  width: 100%;
 }
 
 .month-control .icon-button {
-  flex: 0 0 auto;
+  box-shadow: none;
 }
 
 .summary-grid {
@@ -320,29 +326,51 @@ input[type="color"] {
 
 .calendar-totals {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 14px;
 }
 
-.calendar-totals div {
+.calendar-summary-box {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fbfcfb;
-  padding: 10px 12px;
+  padding: 12px;
 }
 
-.calendar-totals span {
+.month-summary-box {
+  background: #f7fbfc;
+  border-color: #c9dde3;
+}
+
+.settlement-summary-box {
+  background: #f7fbf8;
+  border-color: #cde0d3;
+}
+
+.calendar-summary-box span {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 10px;
   color: var(--muted);
   font-size: 0.76rem;
   font-weight: 700;
 }
 
-.calendar-totals strong {
+.summary-box-grid {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.summary-box-grid strong {
   color: var(--green);
   font-size: 1.15rem;
+}
+
+.summary-box-grid b {
+  color: var(--ink);
+  font-size: 0.9rem;
 }
 
 .calendar-weekdays,
@@ -477,28 +505,6 @@ input[type="color"] {
     width: 100%;
   }
 
-  .month-control {
-    display: grid;
-    grid-template-columns: 40px 40px minmax(0, 1fr);
-    grid-template-areas:
-      "prev next ."
-      "picker picker picker";
-    justify-content: start;
-  }
-
-  .month-control input {
-    grid-area: picker;
-    width: 100%;
-  }
-
-  #prevMonthBtn {
-    grid-area: prev;
-  }
-
-  #nextMonthBtn {
-    grid-area: next;
-  }
-
   .settlement-actions {
     display: grid;
     grid-template-columns: 1fr;
@@ -512,8 +518,32 @@ input[type="color"] {
     white-space: normal;
   }
 
+  .month-control {
+    grid-template-columns: 40px 40px minmax(0, 1fr);
+    grid-template-areas:
+      "prev next ."
+      "picker picker picker";
+    overflow: hidden;
+  }
+
+  .month-control input {
+    grid-area: picker;
+  }
+
+  #prevMonthBtn {
+    grid-area: prev;
+  }
+
+  #nextMonthBtn {
+    grid-area: next;
+  }
+
   .calendar-totals {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
+  }
+
+  .summary-box-grid {
+    grid-template-columns: 1fr 1fr 1fr;
   }
 
   .summary-grid,

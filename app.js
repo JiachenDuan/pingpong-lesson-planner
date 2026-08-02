@@ -130,8 +130,8 @@ function renderSummary() {
   const lessons = monthLessons();
   const totalMinutes = lessons.reduce((sum, lesson) => sum + Number(lesson.minutes), 0);
 
-  $("monthLessonCount").textContent = lessons.length;
-  $("monthHours").textContent = `${(totalMinutes / 60).toFixed(totalMinutes % 60 ? 1 : 0)}h`;
+  $("monthLessonCount").textContent = `${lessons.length} 节`;
+  $("monthHours").textContent = formatHours(totalMinutes);
 }
 
 function renderSettlement() {
@@ -157,8 +157,10 @@ function renderSettlement() {
 
 function renderCalendar() {
   const lessons = monthLessons();
+  const settlement = settlementLessons();
   const monthSpend = lessons.reduce((sum, lesson) => sum + lessonCost(lesson), 0);
-  const settlementSpend = settlementLessons().reduce((sum, lesson) => sum + lessonCost(lesson), 0);
+  const settlementSpend = settlement.reduce((sum, lesson) => sum + lessonCost(lesson), 0);
+  const settlementMinutes = settlement.reduce((sum, lesson) => sum + Number(lesson.minutes), 0);
   const lessonsByDate = lessons.reduce((map, lesson) => {
     if (!map.has(lesson.date)) map.set(lesson.date, []);
     map.get(lesson.date).push(lesson);
@@ -174,6 +176,8 @@ function renderCalendar() {
   $("calendarTitleMonth").textContent = monthTitle(selectedMonth);
   $("calendarMonthSpend").textContent = money(monthSpend);
   $("calendarSettlementSpend").textContent = money(settlementSpend);
+  $("calendarSettlementCount").textContent = `${settlement.length} 节`;
+  $("calendarSettlementHours").textContent = formatHours(settlementMinutes);
 
   for (let index = 0; index < leadingBlanks; index += 1) {
     cells.push('<div class="calendar-day calendar-day-empty"></div>');
@@ -341,6 +345,10 @@ function download(filename, content, type) {
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
+}
+
+function formatHours(minutes) {
+  return `${(minutes / 60).toFixed(minutes % 60 ? 1 : 0)}h`;
 }
 
 function shiftMonth(delta) {
