@@ -20,6 +20,6 @@ python3 -m http.server 5173
 
 ## GitHub Pages 部署
 
-这个项目是纯静态网站。推到 GitHub 后，GitHub Actions 会把 `index.html`、`styles.css`、`app.js` 发布到 GitHub Pages。
+这个项目是纯静态网站。GitHub Pages 从 `main` 分支根目录发布 `index.html`、`styles.css`、`app.js`。
 
 数据保存在浏览器 `localStorage`。如果换设备使用，需要先导出 JSON，再在另一台设备导入。后续如果需要真正的多设备同步，可以接 Supabase、Firebase 或 GitHub Gist。
