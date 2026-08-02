@@ -103,11 +103,14 @@ function monthLessons() {
 function renderSelects() {
   const childOptions = state.children.map((child) => `<option value="${child.id}">${escapeHtml(child.name)}</option>`).join("");
   const coachOptions = state.coaches.map((coach) => `<option value="${coach.id}">${escapeHtml(coach.name)}</option>`).join("");
+  const hasMultipleChildren = state.children.length > 1;
 
   $("lessonChild").innerHTML = childOptions;
   $("lessonCoach").innerHTML = coachOptions;
   $("childFilter").innerHTML = `<option value="all">所有孩子</option>${childOptions}`;
   $("coachFilter").innerHTML = `<option value="all">所有教练</option>${coachOptions}`;
+  $("lessonChildField").classList.toggle("is-hidden", !hasMultipleChildren);
+  $("childFilter").classList.toggle("is-hidden", !hasMultipleChildren);
   $("childFilter").value = filters.childId;
   $("coachFilter").value = filters.coachId;
 
