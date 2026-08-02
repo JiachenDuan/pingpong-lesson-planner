@@ -113,6 +113,10 @@ h2 {
   margin-bottom: 16px;
 }
 
+.summary-only {
+  grid-template-columns: 1fr;
+}
+
 .month-control,
 .summary-grid,
 .panel {
@@ -232,6 +236,10 @@ input[type="color"] {
   margin-bottom: 16px;
 }
 
+.calendar-panel {
+  margin-bottom: 16px;
+}
+
 .settlement-panel .panel-header {
   align-items: flex-start;
 }
@@ -313,6 +321,7 @@ input[type="color"] {
 
 .calendar-totals {
   align-items: stretch;
+  margin-bottom: 14px;
 }
 
 .calendar-totals div {
@@ -451,13 +460,16 @@ input[type="color"] {
   .settlement-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
 }
 
 @media (max-width: 560px) {
   .app-shell {
     width: min(100% - 20px, 1180px);
     padding-top: 16px;
+  }
+
+  .panel {
+    padding: 14px;
   }
 
   .topbar,
@@ -468,6 +480,7 @@ input[type="color"] {
 
   .top-actions,
   .calendar-totals,
+  .calendar-month-control,
   .settlement-actions {
     width: 100%;
   }
@@ -520,12 +533,12 @@ input[type="color"] {
 
   .calendar-weekdays,
   .calendar-grid {
-    gap: 5px;
+    gap: 4px;
   }
 
   .calendar-day {
     min-height: 74px;
-    padding: 6px;
+    padding: 4px;
   }
 
   .calendar-day-top {

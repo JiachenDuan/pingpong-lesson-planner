@@ -18,6 +18,7 @@ let selectedMonth = new Date().toISOString().slice(0, 7);
 
 const $ = (id) => document.getElementById(id);
 const money = (value) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value || 0);
+const monthTitle = (month) => new Date(`${month}-01T12:00:00`).toLocaleDateString("zh-CN", { year: "numeric", month: "long" });
 const shortDateLabel = (date) => new Date(`${date}T12:00:00`).toLocaleDateString("zh-CN", { month: "short", day: "numeric" });
 
 function loadState() {
@@ -169,6 +170,7 @@ function renderCalendar() {
   const today = new Date().toISOString().slice(0, 10);
   const cells = [];
 
+  $("calendarTitleMonth").textContent = monthTitle(selectedMonth);
   $("calendarMonthSpend").textContent = money(monthSpend);
   $("calendarSettlementSpend").textContent = money(settlementSpend);
 
@@ -333,7 +335,7 @@ function bindEvents() {
   });
   document.body.addEventListener("click", (event) => {
     const deleteButton = event.target.closest("[data-delete-lesson]");
-    if (deleteButton) deleteBy("lesson", deleteButton.dataset.deleteLesson);
+    if (deleteButton && confirm("确定删除这节课？")) deleteBy("lesson", deleteButton.dataset.deleteLesson);
   });
 }
 

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ping Pong Lessons</title>
-    <link rel="stylesheet" href="./styles.css?v=20260802-calendar" />
+    <link rel="stylesheet" href="./styles.css?v=20260802-calendar-top" />
   </head>
   <body>
     <div class="app-shell">
@@ -24,12 +24,41 @@
       </header>
 
       <main>
-        <section class="summary-band">
-          <div class="month-control">
-            <button class="icon-button" id="prevMonthBtn" title="上个月" aria-label="上个月">‹</button>
-            <input type="month" id="monthPicker" />
-            <button class="icon-button" id="nextMonthBtn" title="下个月" aria-label="下个月">›</button>
+        <section class="panel calendar-panel">
+          <div class="panel-header">
+            <div>
+              <h2 id="calendarTitleMonth">课程日历</h2>
+              <p class="muted">每个日期显示当天课程和花费。</p>
+            </div>
+            <div class="month-control calendar-month-control">
+              <button class="icon-button" id="prevMonthBtn" title="上个月" aria-label="上个月">‹</button>
+              <input type="month" id="monthPicker" />
+              <button class="icon-button" id="nextMonthBtn" title="下个月" aria-label="下个月">›</button>
+            </div>
           </div>
+          <div class="calendar-totals">
+            <div>
+              <span>本月花销</span>
+              <strong id="calendarMonthSpend">$0</strong>
+            </div>
+            <div>
+              <span>本次结算</span>
+              <strong id="calendarSettlementSpend">$0</strong>
+            </div>
+          </div>
+          <div class="calendar-weekdays">
+            <span>一</span>
+            <span>二</span>
+            <span>三</span>
+            <span>四</span>
+            <span>五</span>
+            <span>六</span>
+            <span>日</span>
+          </div>
+          <div id="calendarGrid" class="calendar-grid"></div>
+        </section>
+
+        <section class="summary-band summary-only">
           <div class="summary-grid summary-grid-compact">
             <div class="metric">
               <span>本月节数</span>
@@ -113,37 +142,9 @@
           </div>
         </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <h2>课程日历</h2>
-              <p class="muted">每个日期显示当天课程和花费。</p>
-            </div>
-            <div class="calendar-totals">
-              <div>
-                <span>本月花销</span>
-                <strong id="calendarMonthSpend">$0</strong>
-              </div>
-              <div>
-                <span>本次结算</span>
-                <strong id="calendarSettlementSpend">$0</strong>
-              </div>
-            </div>
-          </div>
-          <div class="calendar-weekdays">
-            <span>一</span>
-            <span>二</span>
-            <span>三</span>
-            <span>四</span>
-            <span>五</span>
-            <span>六</span>
-            <span>日</span>
-          </div>
-          <div id="calendarGrid" class="calendar-grid"></div>
-        </section>
       </main>
     </div>
 
-    <script src="./app.js?v=20260802-calendar"></script>
+    <script src="./app.js?v=20260802-calendar-top"></script>
   </body>
 </html>
