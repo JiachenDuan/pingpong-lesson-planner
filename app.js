@@ -445,9 +445,7 @@ function renderCalendar() {
 function renderDayModal() {
   if (!selectedModalDate) return;
 
-  const lessons = state.lessons
-    .filter((lesson) => lesson.date === selectedModalDate)
-    .sort((a, b) => a.coachId.localeCompare(b.coachId));
+  const lessons = lessonsForDate(selectedModalDate);
   const totalMinutes = lessons.reduce((sum, lesson) => sum + Number(lesson.minutes), 0);
   const totalSpend = lessons.reduce((sum, lesson) => sum + lessonCost(lesson), 0);
 
@@ -456,6 +454,12 @@ function renderDayModal() {
   $("dayModalLessons").innerHTML = lessons.length
     ? lessons.map((lesson) => (editingLessonId === lesson.id ? editLessonHtml(lesson) : lessonDetailHtml(lesson))).join("")
     : '<div class="modal-empty">这天还没有课程。</div>';
+}
+
+function lessonsForDate(date) {
+  return state.lessons
+    .filter((lesson) => lesson.date === date)
+    .sort((a, b) => a.coachId.localeCompare(b.coachId));
 }
 
 function lessonDetailHtml(lesson) {
@@ -506,6 +510,17 @@ function openDayModal(date) {
   editingLessonId = "";
   renderDayModal();
   $("dayModal").classList.remove("is-hidden");
+}
+
+function openCalendarDate(date) {
+  if (lessonsForDate(date).length) {
+    openDayModal(date);
+    return;
+  }
+
+  selectedModalDate = "";
+  editingLessonId = "";
+  openLessonModal(date);
 }
 
 function closeDayModal() {
@@ -641,7 +656,7 @@ function bindEvents() {
     const dayButton = event.target.closest("[data-open-date]");
     if (!dayButton || !["Enter", " "].includes(event.key)) return;
     event.preventDefault();
-    openDayModal(dayButton.dataset.openDate);
+    openCalendarDate(dayButton.dataset.openDate);
   });
   $("lessonForm").addEventListener("submit", addLesson);
   $("lessonCoach").addEventListener("change", () => {
@@ -704,7 +719,7 @@ function bindEvents() {
   });
   document.body.addEventListener("click", (event) => {
     const dayButton = event.target.closest("[data-open-date]");
-    if (dayButton) openDayModal(dayButton.dataset.openDate);
+    if (dayButton) openCalendarDate(dayButton.dataset.openDate);
 
     const editButton = event.target.closest("[data-edit-lesson]");
     if (editButton) {
