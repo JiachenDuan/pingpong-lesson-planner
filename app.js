@@ -2,6 +2,7 @@ const storageKey = "pingpongLessonPlanner.v1";
 const syncKeyStorageKey = "pingpongLessonPlanner.syncKey";
 const syncTableName = "lesson_planner_state";
 const syncConfig = window.PINGPONG_SUPABASE || {};
+const syncPublicKey = syncConfig.publishableKey || syncConfig.anonKey || "";
 const syncCryptoIterations = 100000;
 
 const seedState = {
@@ -105,13 +106,13 @@ function saveState(options = {}) {
 }
 
 function isSyncConfigured() {
-  return Boolean(syncConfig.url && syncConfig.anonKey && window.supabase?.createClient);
+  return Boolean(syncConfig.url && syncPublicKey && window.supabase?.createClient);
 }
 
 function ensureSyncClient() {
   if (syncClient) return syncClient;
   if (!isSyncConfigured()) return null;
-  syncClient = window.supabase.createClient(syncConfig.url, syncConfig.anonKey);
+  syncClient = window.supabase.createClient(syncConfig.url, syncPublicKey);
   return syncClient;
 }
 

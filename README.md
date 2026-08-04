@@ -47,13 +47,13 @@ using (true)
 with check (true);
 ```
 
-2. 把 `index.html` 里的配置填上：
+2. 把 `index.html` 里的配置填上。Supabase 新项目使用 publishable key；旧项目的 anon key 也兼容，但优先用 `sb_publishable_...`：
 
 ```html
 <script>
   window.PINGPONG_SUPABASE = {
     url: "https://YOUR_PROJECT.supabase.co",
-    anonKey: "YOUR_ANON_KEY",
+    publishableKey: "YOUR_PUBLISHABLE_KEY",
   };
 </script>
 ```
