@@ -24,6 +24,21 @@
       </header>
 
       <main>
+        <section class="panel sync-panel">
+          <div class="sync-main">
+            <div>
+              <h2>云同步</h2>
+              <p id="syncStatus" class="muted">本机保存</p>
+            </div>
+            <div class="sync-controls">
+              <input type="password" id="syncKey" placeholder="同步码" autocomplete="off" />
+              <button id="connectSyncBtn" class="secondary-button" type="button">连接</button>
+              <button id="pullSyncBtn" class="secondary-button" type="button">拉取</button>
+              <button id="pushSyncBtn" class="primary-button" type="button">推送</button>
+            </div>
+          </div>
+        </section>
+
         <section class="panel calendar-panel">
           <div class="panel-header">
             <div>
@@ -149,6 +164,13 @@
       </div>
     </div>
 
-    <script src="./app.js?v=20260803-local-date"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      window.PINGPONG_SUPABASE = {
+        url: "",
+        anonKey: "",
+      };
+    </script>
+    <script src="./app.js?v=20260803-supabase-sync"></script>
   </body>
 </html>

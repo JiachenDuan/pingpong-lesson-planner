@@ -1,4 +1,8 @@
 const storageKey = "pingpongLessonPlanner.v1";
+const syncKeyStorageKey = "pingpongLessonPlanner.syncKey";
+const syncTableName = "lesson_planner_state";
+const syncConfig = window.PINGPONG_SUPABASE || {};
+const syncCryptoIterations = 100000;
 
 const seedState = {
   children: [{ id: "child-kyson", name: "Kyson" }],
@@ -17,6 +21,12 @@ let state = loadState();
 let selectedMonth = localMonthKey();
 let selectedModalDate = "";
 let editingLessonId = "";
+let syncClient = null;
+let syncKey = localStorage.getItem(syncKeyStorageKey) || "";
+let syncConnected = false;
+let syncBusy = false;
+let syncTimer = null;
+let syncMessage = "";
 
 const $ = (id) => document.getElementById(id);
 const money = (value) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value || 0);
@@ -89,8 +99,215 @@ function migrateStarterData(saved) {
   return { state: next, changed };
 }
 
-function saveState() {
+function saveState(options = {}) {
   localStorage.setItem(storageKey, JSON.stringify(state));
+  if (options.syncRemote !== false) queueRemoteSave();
+}
+
+function isSyncConfigured() {
+  return Boolean(syncConfig.url && syncConfig.anonKey && window.supabase?.createClient);
+}
+
+function ensureSyncClient() {
+  if (syncClient) return syncClient;
+  if (!isSyncConfigured()) return null;
+  syncClient = window.supabase.createClient(syncConfig.url, syncConfig.anonKey);
+  return syncClient;
+}
+
+function renderSync() {
+  if (!$("syncStatus")) return;
+  const configured = isSyncConfigured();
+  const savedKey = syncKey ? "已保存同步码" : "未设置同步码";
+  const status = configured ? syncMessage || (syncConnected ? "云同步已连接" : savedKey) : "未配置云同步，当前仅本机保存";
+
+  $("syncStatus").textContent = status;
+  $("syncKey").value = syncKey;
+  $("connectSyncBtn").disabled = syncBusy || !configured;
+  $("pullSyncBtn").disabled = syncBusy || !configured || !syncConnected;
+  $("pushSyncBtn").disabled = syncBusy || !configured || !syncConnected;
+}
+
+function setSyncMessage(message) {
+  syncMessage = message;
+  renderSync();
+}
+
+function queueRemoteSave() {
+  if (!syncConnected || !syncKey) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => {
+    if (syncBusy) {
+      queueRemoteSave();
+      return;
+    }
+    pushRemoteState({ silent: true });
+  }, 650);
+}
+
+async function connectSync(options = {}) {
+  const client = ensureSyncClient();
+  const inputKey = $("syncKey").value.trim();
+  if (!client) return alert("还没有配置 Supabase。");
+  if (!inputKey) return alert("请输入同步码。");
+
+  syncBusy = true;
+  syncKey = inputKey;
+  syncConnected = true;
+  localStorage.setItem(syncKeyStorageKey, syncKey);
+  setSyncMessage("正在连接云同步...");
+
+  try {
+    const remote = await fetchRemoteState();
+    if (remote?.state) {
+      const shouldUseRemote = options.interactive ? confirm("找到云端数据。确定用云端数据覆盖这台设备吗？取消则把本机数据推送到云端。") : true;
+      if (shouldUseRemote) {
+        state = migrateStarterData(remote.state).state;
+        saveState({ syncRemote: false });
+        render();
+        setSyncMessage(`已拉取云端数据：${formatSyncTime(remote.updated_at)}`);
+      } else {
+        await pushRemoteState({ silent: true, raise: true });
+        setSyncMessage("已把本机数据推送到云端");
+      }
+    } else {
+      await pushRemoteState({ silent: true, raise: true });
+      setSyncMessage("已创建云端数据");
+    }
+  } catch (error) {
+    syncConnected = false;
+    setSyncMessage(`云同步失败：${error.message}`);
+  } finally {
+    syncBusy = false;
+    renderSync();
+  }
+}
+
+async function fetchRemoteState() {
+  const client = ensureSyncClient();
+  const id = await syncDocumentId();
+  const { data, error } = await client.from(syncTableName).select("state, updated_at").eq("id", id).maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return { state: await decryptRemoteState(data.state), updated_at: data.updated_at };
+}
+
+async function pullRemoteState() {
+  if (!syncConnected) return;
+  syncBusy = true;
+  setSyncMessage("正在拉取云端数据...");
+  try {
+    const remote = await fetchRemoteState();
+    if (!remote?.state) {
+      setSyncMessage("云端还没有数据");
+      return;
+    }
+    state = migrateStarterData(remote.state).state;
+    saveState({ syncRemote: false });
+    render();
+    setSyncMessage(`已拉取云端数据：${formatSyncTime(remote.updated_at)}`);
+  } catch (error) {
+    setSyncMessage(`拉取失败：${error.message}`);
+  } finally {
+    syncBusy = false;
+    renderSync();
+  }
+}
+
+async function pushRemoteState(options = {}) {
+  const client = ensureSyncClient();
+  if (!client || !syncKey) return;
+
+  syncBusy = true;
+  if (!options.silent) setSyncMessage("正在推送本机数据...");
+  try {
+    const id = await syncDocumentId();
+    const encryptedState = await encryptRemoteState(state);
+    const { error } = await client.from(syncTableName).upsert({
+      id,
+      state: encryptedState,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) throw error;
+    if (!options.silent) setSyncMessage("已推送本机数据到云端");
+    if (options.silent) setSyncMessage("云端已保存");
+  } catch (error) {
+    setSyncMessage(`推送失败：${error.message}`);
+    if (options.raise) throw error;
+  } finally {
+    syncBusy = false;
+    renderSync();
+  }
+}
+
+function formatSyncTime(value) {
+  if (!value) return "刚刚";
+  return new Date(value).toLocaleString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+async function syncDocumentId() {
+  return sha256Hex(`pingpong-id:${syncKey}`);
+}
+
+async function encryptRemoteState(value) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await syncCryptoKey();
+  const encoded = new TextEncoder().encode(JSON.stringify(value));
+  const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded);
+  return {
+    version: 1,
+    algorithm: "AES-GCM",
+    kdf: "PBKDF2-SHA256",
+    iterations: syncCryptoIterations,
+    iv: bytesToBase64(iv),
+    payload: bytesToBase64(new Uint8Array(encrypted)),
+  };
+}
+
+async function decryptRemoteState(envelope) {
+  if (envelope?.children && envelope?.coaches && envelope?.lessons) return envelope;
+  if (!envelope?.iv || !envelope?.payload) throw new Error("云端数据格式不正确。");
+
+  const key = await syncCryptoKey();
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: base64ToBytes(envelope.iv) },
+    key,
+    base64ToBytes(envelope.payload),
+  );
+  return JSON.parse(new TextDecoder().decode(decrypted));
+}
+
+async function syncCryptoKey() {
+  const keyMaterial = await crypto.subtle.importKey("raw", new TextEncoder().encode(syncKey), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: new TextEncoder().encode("pingpongLessonPlanner.v1"),
+      iterations: syncCryptoIterations,
+      hash: "SHA-256",
+    },
+    keyMaterial,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"],
+  );
+}
+
+async function sha256Hex(value) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function bytesToBase64(bytes) {
+  let binary = "";
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary);
+}
+
+function base64ToBytes(value) {
+  return Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
 }
 
 function lessonCost(lesson) {
@@ -290,6 +507,7 @@ function render() {
   renderSummary();
   renderSettlement();
   renderCalendar();
+  renderSync();
 }
 
 function addLesson(event) {
@@ -377,6 +595,16 @@ function pad2(value) {
 
 function bindEvents() {
   $("lessonDate").value = localDateKey();
+  renderSync();
+  $("connectSyncBtn").addEventListener("click", () => connectSync({ interactive: true }));
+  $("pullSyncBtn").addEventListener("click", () => {
+    if (!confirm("确定用云端数据覆盖这台设备吗？")) return;
+    pullRemoteState();
+  });
+  $("pushSyncBtn").addEventListener("click", () => {
+    if (!confirm("确定用本机数据覆盖云端吗？")) return;
+    pushRemoteState();
+  });
   $("monthPicker").addEventListener("change", (event) => {
     selectedMonth = event.target.value;
     render();
@@ -426,7 +654,8 @@ function bindEvents() {
     render();
   });
   $("resetBtn").addEventListener("click", () => {
-    if (!confirm("确定清空这台设备上的所有课程数据？")) return;
+    const resetMessage = syncConnected ? "确定清空这台设备和云端同步数据？" : "确定清空这台设备上的所有课程数据？";
+    if (!confirm(resetMessage)) return;
     localStorage.removeItem(storageKey);
     state = structuredClone(seedState);
     saveState();
@@ -473,3 +702,4 @@ function bindEvents() {
 
 bindEvents();
 render();
+if (syncKey && isSyncConfigured()) connectSync();
