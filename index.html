@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ping Pong Lessons</title>
-    <link rel="stylesheet" href="./styles.css?v=20260802-two-column-cards" />
+    <link rel="stylesheet" href="./styles.css?v=20260803-remove-header-actions" />
   </head>
   <body>
     <div class="app-shell">
@@ -12,14 +12,6 @@
         <div>
           <p class="eyebrow">家庭乒乓课程账本</p>
           <h1>Ping Pong Lessons</h1>
-        </div>
-        <div class="top-actions">
-          <button class="icon-button" id="exportJsonBtn" title="导出备份 JSON" aria-label="导出备份 JSON">⬇</button>
-          <label class="icon-button" title="导入备份 JSON" aria-label="导入备份 JSON">
-            ⬆
-            <input type="file" id="importJsonInput" accept="application/json" hidden />
-          </label>
-          <button class="icon-button danger" id="resetBtn" title="清空本机数据" aria-label="清空本机数据">×</button>
         </div>
       </header>
 
@@ -157,6 +149,6 @@
         defaultSyncKey: "tLrIr2m8MPNqUnftSwfkv-Lb",
       };
     </script>
-    <script src="./app.js?v=20260803-backend-persist"></script>
+    <script src="./app.js?v=20260803-remove-header-actions"></script>
   </body>
 </html>

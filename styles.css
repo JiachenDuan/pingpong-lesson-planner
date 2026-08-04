@@ -70,12 +70,6 @@ h2 {
   font-size: 1.05rem;
 }
 
-.top-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .month-control {
   display: flex;
   align-items: center;
@@ -501,7 +495,6 @@ input[type="color"] {
     flex-direction: column;
   }
 
-  .top-actions,
   .calendar-totals,
   .calendar-month-control,
   .settlement-actions {

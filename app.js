@@ -654,25 +654,7 @@ function bindEvents() {
     saveState();
     render();
   });
-  $("exportJsonBtn").addEventListener("click", exportJson);
   $("csvBtn").addEventListener("click", exportCsv);
-  $("importJsonInput").addEventListener("change", async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    const imported = JSON.parse(await file.text());
-    if (!imported.children || !imported.coaches || !imported.lessons) return alert("这个 JSON 不是有效备份。");
-    state = migrateStarterData(imported).state;
-    saveState();
-    render();
-  });
-  $("resetBtn").addEventListener("click", () => {
-    const resetMessage = syncConnected ? "确定清空这台设备和云端同步数据？" : "确定清空这台设备上的所有课程数据？";
-    if (!confirm(resetMessage)) return;
-    localStorage.removeItem(storageKey);
-    state = structuredClone(seedState);
-    saveState();
-    render();
-  });
   $("closeDayModalBtn").addEventListener("click", closeDayModal);
   $("dayModal").addEventListener("click", (event) => {
     if (event.target.id === "dayModal") closeDayModal();
