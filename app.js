@@ -23,7 +23,7 @@ let selectedMonth = localMonthKey();
 let selectedModalDate = "";
 let editingLessonId = "";
 let syncClient = null;
-let syncKey = localStorage.getItem(syncKeyStorageKey) || "";
+let syncKey = syncConfig.defaultSyncKey || localStorage.getItem(syncKeyStorageKey) || "";
 let syncConnected = false;
 let syncBusy = false;
 let syncTimer = null;
@@ -123,10 +123,10 @@ function renderSync() {
   const status = configured ? syncMessage || (syncConnected ? "云同步已连接" : savedKey) : "未配置云同步，当前仅本机保存";
 
   $("syncStatus").textContent = status;
-  $("syncKey").value = syncKey;
-  $("connectSyncBtn").disabled = syncBusy || !configured;
-  $("pullSyncBtn").disabled = syncBusy || !configured || !syncConnected;
-  $("pushSyncBtn").disabled = syncBusy || !configured || !syncConnected;
+  if ($("syncKey")) $("syncKey").value = syncKey;
+  if ($("connectSyncBtn")) $("connectSyncBtn").disabled = syncBusy || !configured;
+  if ($("pullSyncBtn")) $("pullSyncBtn").disabled = syncBusy || !configured || !syncConnected;
+  if ($("pushSyncBtn")) $("pushSyncBtn").disabled = syncBusy || !configured || !syncConnected;
 }
 
 function setSyncMessage(message) {
@@ -148,9 +148,15 @@ function queueRemoteSave() {
 
 async function connectSync(options = {}) {
   const client = ensureSyncClient();
-  const inputKey = $("syncKey").value.trim();
-  if (!client) return alert("还没有配置 Supabase。");
-  if (!inputKey) return alert("请输入同步码。");
+  const inputKey = (options.key || $("syncKey")?.value || syncKey).trim();
+  if (!client) {
+    if (options.interactive) alert("还没有配置 Supabase。");
+    return;
+  }
+  if (!inputKey) {
+    if (options.interactive) alert("请输入同步码。");
+    return;
+  }
 
   syncBusy = true;
   syncKey = inputKey;
@@ -182,6 +188,11 @@ async function connectSync(options = {}) {
     syncBusy = false;
     renderSync();
   }
+}
+
+async function startBackendPersistence() {
+  if (!syncKey) return;
+  await connectSync({ interactive: false, key: syncKey });
 }
 
 async function fetchRemoteState() {
@@ -597,12 +608,12 @@ function pad2(value) {
 function bindEvents() {
   $("lessonDate").value = localDateKey();
   renderSync();
-  $("connectSyncBtn").addEventListener("click", () => connectSync({ interactive: true }));
-  $("pullSyncBtn").addEventListener("click", () => {
+  $("connectSyncBtn")?.addEventListener("click", () => connectSync({ interactive: true }));
+  $("pullSyncBtn")?.addEventListener("click", () => {
     if (!confirm("确定用云端数据覆盖这台设备吗？")) return;
     pullRemoteState();
   });
-  $("pushSyncBtn").addEventListener("click", () => {
+  $("pushSyncBtn")?.addEventListener("click", () => {
     if (!confirm("确定用本机数据覆盖云端吗？")) return;
     pushRemoteState();
   });
@@ -703,3 +714,4 @@ function bindEvents() {
 
 bindEvents();
 render();
+startBackendPersistence();

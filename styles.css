@@ -186,28 +186,6 @@ h2 {
   margin-bottom: 16px;
 }
 
-.sync-panel {
-  margin-bottom: 16px;
-}
-
-.sync-main {
-  display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(360px, 1.5fr);
-  gap: 14px;
-  align-items: center;
-}
-
-.sync-controls {
-  display: grid;
-  grid-template-columns: minmax(160px, 1fr) auto auto auto;
-  gap: 8px;
-  align-items: center;
-}
-
-.sync-controls button {
-  min-width: 70px;
-}
-
 .span-2 {
   grid-column: span 2;
 }
@@ -505,10 +483,6 @@ input[type="color"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .sync-main,
-  .sync-controls {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 560px) {
@@ -538,10 +512,6 @@ input[type="color"] {
     display: grid;
     grid-template-columns: 1fr;
     justify-content: stretch;
-  }
-
-  .sync-controls button {
-    width: 100%;
   }
 
   .settlement-actions button {

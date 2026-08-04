@@ -9,12 +9,12 @@
 - 按不同教练的每小时或每节课收费自动计算费用
 - Calendar 查看每天课程、当月花费、结算周期花费
 - 设置上次/下次结算日，统计周期节数、时长、金额
-- 可选 Supabase 云同步，保留本机离线保存
+- Supabase 后端持久化，保留本机缓存作为加载失败时的兜底
 - 导出 JSON 备份、导入 JSON 备份、导出月度 CSV
 
-## Supabase 云同步
+## Supabase 后端持久化
 
-云同步是可选功能。未配置时，网站仍然只用浏览器 `localStorage` 保存。云端数据会先用同步码在浏览器里 AES-GCM 加密，Supabase 表里保存的是密文。
+网站启动时会自动从 Supabase 读取数据；新增、编辑、删除会继续写回 Supabase。浏览器 `localStorage` 只作为本机缓存和离线兜底。云端数据会先用配置里的同步码在浏览器里 AES-GCM 加密，Supabase 表里保存的是密文。
 
 1. 在 Supabase 免费项目里创建表和匿名策略：
 
@@ -54,13 +54,12 @@ with check (true);
   window.PINGPONG_SUPABASE = {
     url: "https://YOUR_PROJECT.supabase.co",
     publishableKey: "YOUR_PUBLISHABLE_KEY",
+    defaultSyncKey: "YOUR_SYNC_KEY",
   };
 </script>
 ```
 
-3. 打开网站，在“云同步”里输入一个足够长、难猜的同步码。每台设备用同一个同步码，就会同步同一份数据。
-
-同步码不要用孩子名字、生日、手机号这类短内容。建议用密码管理器生成 16 位以上随机字符串。
+3. 打开网站即可自动读取同一份后端数据。每台设备使用同一个 `defaultSyncKey`，就会读写同一份加密数据。
 
 ## 本地运行
 
@@ -74,4 +73,4 @@ python3 -m http.server 5173
 
 这个项目是纯静态网站。GitHub Pages 从 `main` 分支根目录发布 `index.html`、`styles.css`、`app.js`。
 
-数据默认保存在浏览器 `localStorage`。配置 Supabase 后，会继续本机保存，并自动把同一份数据同步到云端。
+数据默认从 Supabase 读取和保存；浏览器 `localStorage` 保留最近一次状态，用于加载失败时兜底。
