@@ -703,4 +703,3 @@ function bindEvents() {
 
 bindEvents();
 render();
-if (syncKey && isSyncConfigured()) connectSync();
