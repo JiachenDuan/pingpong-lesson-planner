@@ -9,12 +9,12 @@ const seedState = {
   lessons: [],
   settings: {
     lastSettlementDate: "",
-    nextSettlementDate: endOfMonth(new Date().toISOString().slice(0, 7)),
+    nextSettlementDate: endOfMonth(localMonthKey()),
   },
 };
 
 let state = loadState();
-let selectedMonth = new Date().toISOString().slice(0, 7);
+let selectedMonth = localMonthKey();
 let selectedModalDate = "";
 let editingLessonId = "";
 
@@ -52,7 +52,7 @@ function migrateStarterData(saved) {
   }
   if (!next.settings.nextSettlementDate) {
     changed = true;
-    next.settings.nextSettlementDate = endOfMonth(new Date().toISOString().slice(0, 7));
+    next.settings.nextSettlementDate = endOfMonth(localMonthKey());
   }
   if ("monthlyBudget" in next.settings || "targetLessons" in next.settings) {
     changed = true;
@@ -170,7 +170,7 @@ function renderCalendar() {
   const daysInMonth = new Date(year, month, 0).getDate();
   const firstWeekday = new Date(year, month - 1, 1).getDay();
   const leadingBlanks = (firstWeekday + 6) % 7;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDateKey();
   const cells = [];
 
   $("calendarTitleMonth").textContent = monthTitle(selectedMonth);
@@ -315,7 +315,7 @@ function deleteBy(type, id) {
 }
 
 function exportJson() {
-  download(`pingpong-lessons-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(state, null, 2), "application/json");
+  download(`pingpong-lessons-${localDateKey()}.json`, JSON.stringify(state, null, 2), "application/json");
 }
 
 function exportCsv() {
@@ -354,17 +354,29 @@ function formatHours(minutes) {
 function shiftMonth(delta) {
   const [year, month] = selectedMonth.split("-").map(Number);
   const date = new Date(year, month - 1 + delta, 1);
-  selectedMonth = date.toISOString().slice(0, 7);
+  selectedMonth = localMonthKey(date);
   render();
 }
 
 function endOfMonth(month) {
   const [year, monthNumber] = month.split("-").map(Number);
-  return new Date(year, monthNumber, 0).toISOString().slice(0, 10);
+  return `${year}-${pad2(monthNumber)}-${pad2(new Date(year, monthNumber, 0).getDate())}`;
+}
+
+function localDateKey(date = new Date()) {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+function localMonthKey(date = new Date()) {
+  return localDateKey(date).slice(0, 7);
+}
+
+function pad2(value) {
+  return String(value).padStart(2, "0");
 }
 
 function bindEvents() {
-  $("lessonDate").value = new Date().toISOString().slice(0, 10);
+  $("lessonDate").value = localDateKey();
   $("monthPicker").addEventListener("change", (event) => {
     selectedMonth = event.target.value;
     render();
@@ -397,7 +409,7 @@ function bindEvents() {
     state.settings.nextSettlementDate = endOfMonth(nextDate.slice(0, 7));
     if (state.settings.nextSettlementDate <= nextDate) {
       const [year, month] = nextDate.slice(0, 7).split("-").map(Number);
-      state.settings.nextSettlementDate = endOfMonth(new Date(year, month, 1).toISOString().slice(0, 7));
+      state.settings.nextSettlementDate = endOfMonth(localMonthKey(new Date(year, month, 1)));
     }
     saveState();
     render();
