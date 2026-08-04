@@ -581,13 +581,6 @@ function formatHours(minutes) {
   return `${(minutes / 60).toFixed(minutes % 60 ? 1 : 0)}h`;
 }
 
-function shiftMonth(delta) {
-  const [year, month] = selectedMonth.split("-").map(Number);
-  const date = new Date(year, month - 1 + delta, 1);
-  selectedMonth = localMonthKey(date);
-  render();
-}
-
 function endOfMonth(month) {
   const [year, monthNumber] = month.split("-").map(Number);
   return `${year}-${pad2(monthNumber)}-${pad2(new Date(year, monthNumber, 0).getDate())}`;
@@ -621,8 +614,6 @@ function bindEvents() {
     selectedMonth = event.target.value;
     render();
   });
-  $("prevMonthBtn").addEventListener("click", () => shiftMonth(-1));
-  $("nextMonthBtn").addEventListener("click", () => shiftMonth(1));
   $("calendarGrid").addEventListener("keydown", (event) => {
     const dayButton = event.target.closest("[data-open-date]");
     if (!dayButton || !["Enter", " "].includes(event.key)) return;
