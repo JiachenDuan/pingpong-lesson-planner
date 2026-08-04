@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ping Pong Lessons</title>
-    <link rel="stylesheet" href="./styles.css?v=20260803-remove-month-buttons" />
+    <link rel="stylesheet" href="./styles.css?v=20260803-top-action-modals" />
   </head>
   <body>
     <div class="app-shell">
@@ -16,6 +16,17 @@
       </header>
 
       <main>
+        <section class="quick-actions" aria-label="常用操作">
+          <button id="openLessonModalBtn" class="quick-action-button primary-quick-action" type="button">
+            <span>记录一节课</span>
+            <b>添加今天的课程</b>
+          </button>
+          <button id="openSettlementModalBtn" class="quick-action-button" type="button">
+            <span>结算周期</span>
+            <b id="quickSettlementRange">设置结算日</b>
+          </button>
+        </section>
+
         <section class="panel calendar-panel">
           <div class="panel-header">
             <div>
@@ -56,74 +67,83 @@
           <div id="calendarGrid" class="calendar-grid"></div>
         </section>
 
-        <section class="settlement-panel panel">
-          <div class="panel-header">
-            <div>
-              <h2>结算周期</h2>
-              <p id="settlementRange" class="muted">首次结算</p>
-            </div>
-            <div class="settlement-actions">
-              <button id="saveSettlementBtn" class="primary-button">保存结算日</button>
-              <button id="markSettledBtn" class="secondary-button">标记已结算</button>
-            </div>
-          </div>
-          <div class="settlement-grid">
-            <label>
-              上次结算日
-              <input type="date" id="lastSettlementDate" />
-            </label>
-            <label>
-              下次结算日
-              <input type="date" id="nextSettlementDate" />
-            </label>
-            <div class="mini-metric">
-              <span>周期节数</span>
-              <strong id="settlementLessonCount">0</strong>
-            </div>
-            <div class="mini-metric">
-              <span>周期时长</span>
-              <strong id="settlementHours">0h</strong>
-            </div>
-            <div class="mini-metric">
-              <span>需要结算</span>
-              <strong id="settlementSpend">$0</strong>
-            </div>
-          </div>
-        </section>
-
-        <section class="record-section">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>记录一节课</h2>
-              <button id="csvBtn" class="secondary-button">导出 CSV</button>
-            </div>
-            <form id="lessonForm" class="lesson-form">
-              <label>
-                日期
-                <input type="date" id="lessonDate" required />
-              </label>
-              <label id="lessonChildField">
-                孩子
-                <select id="lessonChild" required></select>
-              </label>
-              <label>
-                教练
-                <select id="lessonCoach" required></select>
-              </label>
-              <label>
-                分钟
-                <input type="number" id="lessonMinutes" min="15" step="5" required />
-              </label>
-              <label class="span-2">
-                备注
-                <input type="text" id="lessonNote" placeholder="例如：发球、多球、比赛课" />
-              </label>
-              <button type="submit" class="primary-button">添加课程</button>
-            </form>
-          </div>
-        </section>
-
       </main>
+    </div>
+
+    <div id="lessonModal" class="modal-backdrop is-hidden" role="dialog" aria-modal="true" aria-labelledby="lessonModalTitle">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <h2 id="lessonModalTitle">记录一节课</h2>
+            <p class="muted">保存后会自动同步到后端。</p>
+          </div>
+          <button class="icon-button" id="closeLessonModalBtn" title="关闭" aria-label="关闭">×</button>
+        </div>
+        <form id="lessonForm" class="lesson-form modal-form">
+          <label>
+            日期
+            <input type="date" id="lessonDate" required />
+          </label>
+          <label id="lessonChildField">
+            孩子
+            <select id="lessonChild" required></select>
+          </label>
+          <label>
+            教练
+            <select id="lessonCoach" required></select>
+          </label>
+          <label>
+            分钟
+            <input type="number" id="lessonMinutes" min="15" step="5" required />
+          </label>
+          <label>
+            备注
+            <input type="text" id="lessonNote" placeholder="例如：发球、多球、比赛课" />
+          </label>
+          <div class="modal-actions">
+            <button type="submit" class="primary-button">添加课程</button>
+            <button id="csvBtn" class="secondary-button" type="button">导出 CSV</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="settlementModal" class="modal-backdrop is-hidden" role="dialog" aria-modal="true" aria-labelledby="settlementModalTitle">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <h2 id="settlementModalTitle">结算周期</h2>
+            <p id="settlementRange" class="muted">首次结算</p>
+          </div>
+          <button class="icon-button" id="closeSettlementModalBtn" title="关闭" aria-label="关闭">×</button>
+        </div>
+        <div class="settlement-grid modal-settlement-grid">
+          <label>
+            上次结算日
+            <input type="date" id="lastSettlementDate" />
+          </label>
+          <label>
+            下次结算日
+            <input type="date" id="nextSettlementDate" />
+          </label>
+          <div class="mini-metric">
+            <span>周期节数</span>
+            <strong id="settlementLessonCount">0</strong>
+          </div>
+          <div class="mini-metric">
+            <span>周期时长</span>
+            <strong id="settlementHours">0h</strong>
+          </div>
+          <div class="mini-metric">
+            <span>需要结算</span>
+            <strong id="settlementSpend">$0</strong>
+          </div>
+        </div>
+        <div class="modal-actions settlement-modal-actions">
+          <button id="saveSettlementBtn" class="primary-button" type="button">保存结算日</button>
+          <button id="markSettledBtn" class="secondary-button" type="button">标记已结算</button>
+        </div>
+      </div>
     </div>
 
     <div id="dayModal" class="modal-backdrop is-hidden" role="dialog" aria-modal="true" aria-labelledby="dayModalTitle">
@@ -147,6 +167,6 @@
         defaultSyncKey: "tLrIr2m8MPNqUnftSwfkv-Lb",
       };
     </script>
-    <script src="./app.js?v=20260803-remove-month-buttons"></script>
+    <script src="./app.js?v=20260803-top-action-modals"></script>
   </body>
 </html>

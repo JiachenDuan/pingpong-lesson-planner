@@ -48,6 +48,63 @@ button {
   margin-bottom: 22px;
 }
 
+.quick-actions {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 8px 0 10px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.quick-action-button {
+  display: grid;
+  min-width: 0;
+  min-height: 72px;
+  gap: 5px;
+  align-content: center;
+  border: 1px solid #cde0d3;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 12px 14px;
+  text-align: left;
+  box-shadow: var(--shadow);
+}
+
+.quick-action-button span {
+  font-size: 1.05rem;
+  font-weight: 850;
+}
+
+.quick-action-button b {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-action-button:hover {
+  border-color: var(--teal);
+}
+
+.primary-quick-action {
+  border-color: var(--teal);
+  background: var(--teal);
+  color: #fff;
+}
+
+.primary-quick-action b {
+  color: rgba(255, 255, 255, 0.8);
+}
+
 .eyebrow {
   margin: 0 0 4px;
   color: var(--green);
@@ -256,6 +313,15 @@ input[type="color"] {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
   align-items: stretch;
+}
+
+.modal-settlement-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 14px;
+}
+
+.modal-settlement-grid .mini-metric:last-child {
+  grid-column: span 2;
 }
 
 .mini-metric {
@@ -501,6 +567,21 @@ input[type="color"] {
     width: 100%;
   }
 
+  .quick-actions {
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-top: 6px;
+  }
+
+  .quick-action-button {
+    min-height: 64px;
+    padding: 10px;
+  }
+
+  .quick-action-button span {
+    font-size: 0.96rem;
+  }
+
   .settlement-actions {
     display: grid;
     grid-template-columns: 1fr;
@@ -530,6 +611,14 @@ input[type="color"] {
   .lesson-form,
   .settlement-grid {
     grid-template-columns: 1fr;
+  }
+
+  .modal-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-settlement-grid .mini-metric:last-child {
+    grid-column: auto;
   }
 
   .calendar-weekdays,
@@ -589,6 +678,24 @@ input[type="color"] {
 .modal-lessons {
   display: grid;
   gap: 10px;
+}
+
+.modal-form {
+  gap: 12px;
+}
+
+.modal-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.modal-actions button {
+  min-width: 0;
+}
+
+.settlement-modal-actions {
+  margin-top: 4px;
 }
 
 .modal-lesson {

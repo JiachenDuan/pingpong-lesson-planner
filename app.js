@@ -379,6 +379,7 @@ function renderSettlement() {
   $("lastSettlementDate").value = lastDate;
   $("nextSettlementDate").value = nextDate;
   $("settlementRange").textContent = lastDate ? `${shortDateLabel(lastDate)} 后 - ${shortDateLabel(nextDate)}` : `首次结算 - ${shortDateLabel(nextDate)}`;
+  $("quickSettlementRange").textContent = lastDate ? `${shortDateLabel(lastDate)} 后 - ${shortDateLabel(nextDate)}` : `到 ${shortDateLabel(nextDate)}`;
   $("settlementLessonCount").textContent = lessons.length;
   $("settlementHours").textContent = `${(totalMinutes / 60).toFixed(totalMinutes % 60 ? 1 : 0)}h`;
   $("settlementSpend").textContent = money(totalSpend);
@@ -513,6 +514,25 @@ function closeDayModal() {
   $("dayModal").classList.add("is-hidden");
 }
 
+function openLessonModal() {
+  $("lessonDate").value = $("lessonDate").value || localDateKey();
+  $("lessonModal").classList.remove("is-hidden");
+  $("lessonCoach").focus();
+}
+
+function closeLessonModal() {
+  $("lessonModal").classList.add("is-hidden");
+}
+
+function openSettlementModal() {
+  $("settlementModal").classList.remove("is-hidden");
+  $("nextSettlementDate").focus();
+}
+
+function closeSettlementModal() {
+  $("settlementModal").classList.add("is-hidden");
+}
+
 function render() {
   $("monthPicker").value = selectedMonth;
   renderSelects();
@@ -535,6 +555,7 @@ function addLesson(event) {
   $("lessonNote").value = "";
   saveState();
   render();
+  closeLessonModal();
 }
 
 function deleteBy(type, id) {
@@ -601,6 +622,8 @@ function pad2(value) {
 function bindEvents() {
   $("lessonDate").value = localDateKey();
   renderSync();
+  $("openLessonModalBtn").addEventListener("click", openLessonModal);
+  $("openSettlementModalBtn").addEventListener("click", openSettlementModal);
   $("connectSyncBtn")?.addEventListener("click", () => connectSync({ interactive: true }));
   $("pullSyncBtn")?.addEventListener("click", () => {
     if (!confirm("确定用云端数据覆盖这台设备吗？")) return;
@@ -633,6 +656,7 @@ function bindEvents() {
     state.settings.nextSettlementDate = nextDate || endOfMonth(selectedMonth);
     saveState();
     render();
+    closeSettlementModal();
   });
   $("markSettledBtn").addEventListener("click", () => {
     const nextDate = state.settings.nextSettlementDate || endOfMonth(selectedMonth);
@@ -644,8 +668,17 @@ function bindEvents() {
     }
     saveState();
     render();
+    closeSettlementModal();
   });
   $("csvBtn").addEventListener("click", exportCsv);
+  $("closeLessonModalBtn").addEventListener("click", closeLessonModal);
+  $("lessonModal").addEventListener("click", (event) => {
+    if (event.target.id === "lessonModal") closeLessonModal();
+  });
+  $("closeSettlementModalBtn").addEventListener("click", closeSettlementModal);
+  $("settlementModal").addEventListener("click", (event) => {
+    if (event.target.id === "settlementModal") closeSettlementModal();
+  });
   $("closeDayModalBtn").addEventListener("click", closeDayModal);
   $("dayModal").addEventListener("click", (event) => {
     if (event.target.id === "dayModal") closeDayModal();
