@@ -514,8 +514,8 @@ function closeDayModal() {
   $("dayModal").classList.add("is-hidden");
 }
 
-function openLessonModal() {
-  $("lessonDate").value = $("lessonDate").value || localDateKey();
+function openLessonModal(date = "") {
+  $("lessonDate").value = date || $("lessonDate").value || localDateKey();
   $("lessonModal").classList.remove("is-hidden");
   $("lessonCoach").focus();
 }
@@ -680,6 +680,11 @@ function bindEvents() {
     if (event.target.id === "settlementModal") closeSettlementModal();
   });
   $("closeDayModalBtn").addEventListener("click", closeDayModal);
+  $("addLessonFromDayBtn").addEventListener("click", () => {
+    const date = selectedModalDate;
+    closeDayModal();
+    openLessonModal(date);
+  });
   $("dayModal").addEventListener("click", (event) => {
     if (event.target.id === "dayModal") closeDayModal();
   });

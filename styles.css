@@ -698,6 +698,11 @@ input[type="color"] {
   margin-top: 4px;
 }
 
+.day-modal-actions {
+  grid-template-columns: 1fr;
+  margin-top: 12px;
+}
+
 .modal-lesson {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
